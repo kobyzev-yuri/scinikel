@@ -1,0 +1,118 @@
+:root {
+  --bg: #0f1419;
+  --surface: #1a2332;
+  --border: #2d3a4d;
+  --text: #e8eef5;
+  --muted: #8b9cb3;
+  --accent: #3d9a8b;
+  --accent-hover: #4db8a7;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.layout { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+
+header h1 { margin: 0 0 0.25rem; font-size: 1.75rem; }
+.tagline { color: var(--muted); margin: 0 0 1rem; }
+.stats { font-size: 0.85rem; color: var(--accent); }
+
+main {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  main { grid-template-columns: 1fr; }
+}
+
+.chat-panel, .side-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.messages {
+  min-height: 320px;
+  max-height: 480px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.msg {
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.msg.user { background: #243044; align-self: flex-end; max-width: 90%; }
+.msg.assistant { background: #1e2d28; border-left: 3px solid var(--accent); }
+
+.chat-form { display: flex; gap: 0.5rem; }
+.chat-form textarea {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.6rem;
+  resize: vertical;
+  font: inherit;
+}
+
+button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  cursor: pointer;
+  font: inherit;
+}
+
+button:hover { background: var(--accent-hover); }
+
+.examples { margin-top: 0.75rem; display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+.examples span { color: var(--muted); font-size: 0.85rem; }
+.example {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+#graph {
+  height: 280px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.side-panel h2 { font-size: 0.95rem; margin: 1rem 0 0.5rem; }
+.side-panel h2:first-child { margin-top: 0; }
+
+#citations {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+#citations li { padding: 0.35rem 0; border-bottom: 1px solid var(--border); }
+
+.loading { opacity: 0.6; font-style: italic; }

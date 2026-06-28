@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Научный клубок</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+</head>
+<body>
+  <div class="layout">
+    <header>
+      <h1>🧶 Научный клубок</h1>
+      <p class="tagline">Диалог поверх графа знаний — сплавы, режимы, свойства, эксперименты</p>
+      <div id="stats" class="stats"></div>
+    </header>
+
+    <main>
+      <section class="chat-panel">
+        <div id="messages" class="messages"></div>
+        <form id="chat-form" class="chat-form">
+          <textarea id="input" rows="2" placeholder="Например: что делали по Ni-Cu сплаву при электролизе 250°C и какой эффект на содержание Ni?"></textarea>
+          <button type="submit">Спросить</button>
+        </form>
+        <div class="examples">
+          <span>Примеры:</span>
+          <button type="button" class="example" data-q="Что делали по Ni-Cu концентрату при флотации pH 10.5 и какой эффект на извлечение Ni?">флотация Ni</button>
+          <button type="button" class="example" data-q="Кто занимался электролизом и на какой установке?">кто / установка</button>
+          <button type="button" class="example" data-q="Какие комбинации материал×режим ещё не исследованы?">пробелы</button>
+        </div>
+      </section>
+
+      <aside class="side-panel">
+        <h2>Граф связей</h2>
+        <div id="graph"></div>
+        <h2>Источники</h2>
+        <ul id="citations"></ul>
+      </aside>
+    </main>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

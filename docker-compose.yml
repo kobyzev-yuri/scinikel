@@ -1,0 +1,19 @@
+# Optional — раскомментируйте при переходе на Neo4j
+# services:
+#   neo4j:
+#     image: neo4j:5
+#     ports:
+#       - "7474:7474"
+#       - "7687:7687"
+#     environment:
+#       NEO4J_AUTH: neo4j/password
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - GRAPH_BACKEND=networkx

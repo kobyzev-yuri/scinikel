@@ -1,0 +1,113 @@
+# Онтология «Научный клубок»
+# Расширяйте по мере получения данных от организаторов хакатона
+
+entities:
+  Material:
+    description: Материал, сплав, сырьё
+    fields: [name, composition, grade, source_ref]
+    examples: ["Ni-Cu сплав", "концентрат меди", "анодный никель"]
+
+  Property:
+    description: Измеряемое свойство или показатель качества
+    fields: [name, unit, category]
+    examples: ["прочность на разрыв", "содержание Ni", "зольность"]
+
+  Mode:
+    description: Режим процесса или эксперимента
+    fields: [name, parameters, temperature_c, pressure_mpa]
+    examples: ["электролиз 250°C", "обжиг 800°C", "флотация pH 10.5"]
+
+  Experiment:
+    description: Эксперимент или серия испытаний
+    fields: [title, date, status, hypothesis, result_summary]
+    examples: ["EXP-2024-017: влияние pH на извлечение Ni"]
+
+  Document:
+    description: Статья, отчёт, внутренний документ
+    fields: [title, doc_type, year, authors, abstract]
+    examples: ["отчёт лаборатории", "статья в журнале", "протокол испытаний"]
+
+  Equipment:
+    description: Установка, оборудование, стенд
+    fields: [name, location, lab_id, capabilities]
+    examples: ["электролизёр EL-3", "рентгеновский дифрактометр"]
+
+  Team:
+    description: Исследовательская команда или лаборатория
+    fields: [name, lab_code, department]
+    examples: ["Лаборатория гидрометаллургии", "Центр материаловедения"]
+
+  Conclusion:
+    description: Вывод, рекомендация, наблюдение
+    fields: [text, confidence, evidence_level]
+    examples: ["повышение pH до 10.5 увеличивает извлечение Ni на 3%"]
+
+  Topic:
+    description: Тематический тег
+    fields: [name, parent_topic]
+    examples: ["флотация", "электролиз", "сплавы"]
+
+relations:
+  USES_MATERIAL:
+    from: Experiment
+    to: Material
+    description: Эксперимент использует материал
+
+  AT_MODE:
+    from: Experiment
+    to: Mode
+    description: Эксперимент проводился в режиме
+
+  MEASURES:
+    from: Experiment
+    to: Property
+    properties: [value, delta, method]
+    description: Эксперимент измеряет свойство
+
+  ON_EQUIPMENT:
+    from: Experiment
+    to: Equipment
+
+  CONDUCTED_BY:
+    from: Experiment
+    to: Team
+
+  CONCLUDES:
+    from: Experiment
+    to: Conclusion
+
+  DESCRIBES:
+    from: Document
+    to: Experiment
+
+  MENTIONS:
+    from: Document
+    to: [Material, Property, Mode, Equipment, Team]
+
+  RELATED_TO:
+    from: [Material, Property, Mode]
+    to: [Material, Property, Mode]
+    description: Семантическая связь из справочников
+
+  TAGGED:
+    from: [Experiment, Document]
+    to: Topic
+
+query_patterns:
+  alloy_mode_effect:
+    question: "Что делали по {material} при режиме {mode} и какой эффект на {property}?"
+    traversal:
+      - Material --USES_MATERIAL<-- Experiment --AT_MODE--> Mode
+      - Experiment --MEASURES--> Property
+      - Experiment --CONCLUDES--> Conclusion
+
+  who_did_what:
+    question: "Кто занимался {topic} и на какой установке?"
+    traversal:
+      - Experiment --CONDUCTED_BY--> Team
+      - Experiment --ON_EQUIPMENT--> Equipment
+      - Experiment --TAGGED--> Topic
+
+  data_gaps:
+    question: "Какие комбинации {material} × {mode} ещё не исследованы?"
+    type: gap_analysis
