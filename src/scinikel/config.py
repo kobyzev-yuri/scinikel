@@ -7,7 +7,6 @@ ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = ROOT / "data"
 SEED_DIR = DATA_DIR / "seed"
 GRAPH_PATH = DATA_DIR / "graph.json"
-CHROMA_PATH = DATA_DIR / "vectors"
 
 
 class Settings(BaseSettings):
@@ -22,13 +21,20 @@ class Settings(BaseSettings):
     neo4j_user: str = "neo4j"
     neo4j_password: str = "password"
 
-    # LLM (optional — без ключа работает rule-based fallback)
+    # LLM: openai | ollama
+    llm_provider: str = "openai"
     openai_api_key: str | None = None
     openai_base_url: str | None = None
     llm_model: str = "gpt-4o-mini"
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_model: str = "qwen2.5:7b"
 
-    chroma_collection: str = "scinikel_docs"
-    embedding_model: str = "default"
+    # Vector search (Qdrant + e5 — как в 3dtoday)
+    qdrant_host: str = "localhost"
+    qdrant_port: int = 6333
+    qdrant_collection: str = "scinikel_docs"
+    hf_model_name: str = "intfloat/multilingual-e5-base"
+    embedding_dimension: int = 768
 
 
 settings = Settings()

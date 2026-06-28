@@ -24,7 +24,7 @@
         │                      │
 ┌───────▼────────┐    ┌────────▼─────────┐
 │ GraphStore     │    │ DocumentIndex    │
-│ NetworkX/Neo4j │    │ ChromaDB         │
+│ NetworkX/Neo4j │    │ Qdrant + e5      │
 └────────────────┘    └──────────────────┘
 ```
 
@@ -48,7 +48,7 @@
 ```bash
 cd scinikel
 python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
+pip install -e ".[dev,search]"   # search = sentence-transformers/e5
 
 # Загрузить демо-данные
 python scripts/seed_data.py
@@ -76,11 +76,24 @@ pip install -e ".[llm]"
 - «Кто занимался электролизом и на какой установке?»
 - «Какие комбинации материал×режим ещё не исследованы?»
 
+### Qdrant + embeddings (как в [3dtoday](https://github.com/kobyzev-yuri/3dtoday))
+
+```bash
+./scripts/start_qdrant.sh
+# или: docker compose up -d qdrant
+```
+
+Без Qdrant система работает в keyword-fallback режиме.
+
 ## API
 
 | Метод | Путь | Описание |
 |-------|------|----------|
 | POST | `/api/chat` | Диалог с ассистентом |
+| POST | `/api/ingest/xlsx` | Загрузка каталога экспериментов (XLSX) |
+| POST | `/api/ingest/pdf` | Парсинг PDF + CuratorAgent → граф |
+| POST | `/api/ingest/curate` | Текст → извлечение сущностей → граф |
+| GET | `/api/search/status` | Backend поиска (qdrant+e5 / keyword) |
 | GET | `/api/graph/stats` | Статистика графа |
 | GET | `/api/graph/subgraph/{id}` | Фрагмент графа для визуализации |
 | GET | `/api/entities` | Поиск сущностей |
@@ -90,11 +103,9 @@ pip install -e ".[llm]"
 
 Скелет рассчитан на поэтапное наполнение:
 
-1. **Каталог экспериментов** → `data/seed/experiments.json` или CSV-адаптер в `scinikel/ingest/`
-2. **Корпус документов** → `data/seed/documents.json` + pipeline индексации в ChromaDB
-3. **Справочники материалов/оборудования** → новые JSON или API-коннекторы
-4. **Сотрудники/лаборатории** → сущности `Team`
-5. **Теги тематик** → сущности `Topic`
+1. **Каталог экспериментов** → `experiments.json`, `experiments.xlsx` или `POST /api/ingest/xlsx`
+2. **Корпус документов** → `documents.json`, PDF через `POST /api/ingest/pdf`
+3. **Отчёты/статьи** → `POST /api/ingest/curate` (CuratorAgent → граф + Qdrant)
 
 После добавления файлов:
 
@@ -108,7 +119,11 @@ python scripts/seed_data.py
 | Модуль | Что менять при получении данных |
 |--------|----------------------------------|
 | `data/schemas/ontology.yaml` | Новые сущности и связи |
-| `scinikel/ingest/loader.py` | Парсеры CSV/XLSX/PDF |
+| `scinikel/ingest/pdf_parser.py` | PDF (PyPDF2 + PyMuPDF) |
+| `scinikel/ingest/xlsx_parser.py` | XLSX каталог экспериментов |
+| `scinikel/agent/curator.py` | LLM JSON extraction → граф |
+| `scinikel/search/embeddings.py` | multilingual-e5-base |
+| `scinikel/search/vector_db.py` | Qdrant |
 | `scinikel/query/engine.py` | NER, LLM-intent, Cypher |
 | `scinikel/graph/neo4j_store.py` | Production graph backend |
 | `scinikel/agent/assistant.py` | Tool-calling, уточняющие вопросы |
