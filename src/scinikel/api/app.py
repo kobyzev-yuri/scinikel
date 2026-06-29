@@ -12,7 +12,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from scinikel.agent.assistant import ResearchAgent
+from scinikel.agent.assistant import ChatMessage, ResearchAgent
 from scinikel.agent.curator import CuratorAgent
 from scinikel.config import GRAPH_PATH, ROOT, SEED_DIR, settings
 from scinikel.graph import get_graph_store
@@ -22,6 +22,15 @@ from scinikel.ingest.pdf_parser import parse_pdf
 from scinikel.models.entities import Document, EntityType
 from scinikel.query.engine import HybridQueryEngine
 from scinikel.search.index import DocumentIndex
+from scinikel.storage.conversations import (
+    add_message,
+    conversation_payload,
+    create_conversation,
+    delete_conversation,
+    get_messages,
+    init_db,
+    list_conversations,
+)
 
 _agent: ResearchAgent | None = None
 _graph: NetworkXGraphStore | None = None
@@ -65,6 +74,7 @@ def _bootstrap() -> tuple[NetworkXGraphStore, DocumentIndex, ResearchAgent]:
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    init_db()
     _bootstrap()
     yield
 
@@ -76,8 +86,15 @@ if static_dir.exists():
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 
+class ChatMessageItem(BaseModel):
+    role: str = Field(pattern="^(user|assistant)$")
+    content: str = Field(min_length=1)
+
+
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1)
+    history: list[ChatMessageItem] = Field(default_factory=list)
+    conversation_id: str | None = None
 
 
 class ChatResponse(BaseModel):
@@ -87,6 +104,14 @@ class ChatResponse(BaseModel):
     subgraph: dict[str, Any] | None = None
     gaps: list[dict[str, str]] = Field(default_factory=list)
     llm_used: bool = False
+    turn: int = 0
+    needs_clarification: bool = False
+    clarification_options: list[dict[str, str]] = Field(default_factory=list)
+    conversation_id: str | None = None
+
+
+class ConversationCreate(BaseModel):
+    title: str = "Новый диалог"
 
 
 class CurateRequest(BaseModel):
@@ -109,8 +134,25 @@ async def index():
 async def chat(req: ChatRequest):
     if _agent is None:
         raise HTTPException(503, "Agent not ready")
-    resp = _agent.chat(req.message)
+
+    conv_id = req.conversation_id
+    if conv_id and conversation_payload(conv_id) is None:
+        raise HTTPException(404, "Conversation not found")
+    if not conv_id:
+        conv_id = create_conversation().id
+
+    history = [ChatMessage(role=m.role, content=m.content) for m in req.history]
+    resp = _agent.chat(req.message, history=history)
     qr = resp.query_result
+    turn = len(history) // 2 + 1
+
+    meta = "llm" if resp.llm_used else "graph"
+    if qr and qr.experiments:
+        exp_id = qr.experiments[0]["experiment"]["id"]
+        meta = f"{meta}:{exp_id}"
+    add_message(conv_id, "user", req.message, title_hint=req.message)
+    add_message(conv_id, "assistant", resp.message, meta=meta)
+
     return ChatResponse(
         message=resp.message,
         citations=resp.citations,
@@ -118,7 +160,40 @@ async def chat(req: ChatRequest):
         subgraph=qr.subgraph if qr else None,
         gaps=qr.gaps if qr else [],
         llm_used=resp.llm_used,
+        turn=turn,
+        needs_clarification=qr.needs_clarification if qr else False,
+        clarification_options=qr.clarification_options if qr else [],
+        conversation_id=conv_id,
     )
+
+
+@app.get("/api/conversations")
+async def conversations_list(limit: int = 50):
+    return [
+        {"id": c.id, "title": c.title, "created_at": c.created_at, "updated_at": c.updated_at}
+        for c in list_conversations(limit=limit)
+    ]
+
+
+@app.post("/api/conversations")
+async def conversations_create(req: ConversationCreate):
+    conv = create_conversation(req.title)
+    return {"id": conv.id, "title": conv.title, "created_at": conv.created_at, "updated_at": conv.updated_at}
+
+
+@app.get("/api/conversations/{conv_id}")
+async def conversations_get(conv_id: str):
+    payload = conversation_payload(conv_id)
+    if not payload:
+        raise HTTPException(404, "Conversation not found")
+    return payload
+
+
+@app.delete("/api/conversations/{conv_id}")
+async def conversations_delete(conv_id: str):
+    if not delete_conversation(conv_id):
+        raise HTTPException(404, "Conversation not found")
+    return {"status": "ok"}
 
 
 @app.get("/api/assistant/status")

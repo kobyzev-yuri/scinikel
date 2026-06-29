@@ -1,0 +1,7 @@
+[
+  {"id": "mat-ni-cu-alloy", "name": "Ni-Cu сплав", "composition": "Ni 65%, Cu 35%", "grade": "МНЖ5-1"},
+  {"id": "mat-ni-cu-conc", "name": "Ni-Cu сульфидный концентрат", "composition": "Ni 12-18%, Cu 3-8%, S 25-30%"},
+  {"id": "mat-anode-ni", "name": "анодный никель", "composition": "Ni ≥ 99.5%"},
+  {"id": "mat-cu-conc", "name": "медный концентрат", "composition": "Cu 20-25%, S 30%"},
+  {"id": "mat-w-slime", "name": "вольфрамовый шлам", "composition": "W 15-25%, Fe 10%"}
+]

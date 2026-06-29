@@ -1,6 +1,300 @@
 {
   "entities": [
     {
+      "id": "mat-ni-cu-alloy",
+      "type": "Material",
+      "name": "Ni-Cu сплав",
+      "description": "Ni 65%, Cu 35%",
+      "attributes": {
+        "grade": "МНЖ5-1"
+      },
+      "source_refs": []
+    },
+    {
+      "id": "mat-ni-cu-conc",
+      "type": "Material",
+      "name": "Ni-Cu сульфидный концентрат",
+      "description": "Ni 12-18%, Cu 3-8%, S 25-30%",
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "mat-anode-ni",
+      "type": "Material",
+      "name": "анодный никель",
+      "description": "Ni ≥ 99.5%",
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "mat-cu-conc",
+      "type": "Material",
+      "name": "медный концентрат",
+      "description": "Cu 20-25%, S 30%",
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "mat-w-slime",
+      "type": "Material",
+      "name": "вольфрамовый шлам",
+      "description": "W 15-25%, Fe 10%",
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "eq-fml8",
+      "type": "Equipment",
+      "name": "флотационная машина FML-8",
+      "description": "флотация сульфидных концентратов",
+      "attributes": {
+        "location": "Цех обогащения"
+      },
+      "source_refs": []
+    },
+    {
+      "id": "eq-el3",
+      "type": "Equipment",
+      "name": "электролизёр EL-3",
+      "description": "электролиз Ni, Cu до 300°C",
+      "attributes": {
+        "location": "Цех электролиза"
+      },
+      "source_refs": []
+    },
+    {
+      "id": "eq-po2",
+      "type": "Equipment",
+      "name": "печь обжига PO-2",
+      "description": "обжиг до 900°C",
+      "attributes": {
+        "location": "Цех обжига"
+      },
+      "source_refs": []
+    },
+    {
+      "id": "eq-rv12",
+      "type": "Equipment",
+      "name": "реактор RV-12",
+      "description": "кислотное выщелачивание до 120°C",
+      "attributes": {
+        "location": "Гидрометаллургия"
+      },
+      "source_refs": []
+    },
+    {
+      "id": "eq-ac200",
+      "type": "Equipment",
+      "name": "автоклав AC-200",
+      "description": "автоклавное выщелачивание до 250°C",
+      "attributes": {
+        "location": "Гидрометаллургия"
+      },
+      "source_refs": []
+    },
+    {
+      "id": "eq-uim100",
+      "type": "Equipment",
+      "name": "универсальная испытательная машина UIM-100",
+      "description": "механические испытания",
+      "attributes": {
+        "location": "Материаловедение"
+      },
+      "source_refs": []
+    },
+    {
+      "id": "eq-xrd700",
+      "type": "Equipment",
+      "name": "рентгеновский дифрактометр XRD-700",
+      "description": "фазовый анализ",
+      "attributes": {
+        "location": "Аналитический контроль"
+      },
+      "source_refs": []
+    },
+    {
+      "id": "eq-ms4",
+      "type": "Equipment",
+      "name": "магнитный сепаратор MS-4",
+      "description": "магнитная сепарация до 1.2 Тл",
+      "attributes": {
+        "location": "Редкие металлы"
+      },
+      "source_refs": []
+    },
+    {
+      "id": "eq-cc5",
+      "type": "Equipment",
+      "name": "коррозионная камера CC-5",
+      "description": "коррозионные испытания",
+      "attributes": {
+        "location": "Материаловедение"
+      },
+      "source_refs": []
+    },
+    {
+      "id": "team-beneficiation",
+      "type": "Team",
+      "name": "Лаборатория обогащения",
+      "description": null,
+      "attributes": {
+        "lab_code": "LAB-BEN",
+        "department": "Цех обогащения"
+      },
+      "source_refs": []
+    },
+    {
+      "id": "team-electro",
+      "type": "Team",
+      "name": "Центр электрометаллургии",
+      "description": null,
+      "attributes": {
+        "lab_code": "LAB-ELM",
+        "department": "Электрометаллургия"
+      },
+      "source_refs": []
+    },
+    {
+      "id": "team-materials",
+      "type": "Team",
+      "name": "Центр материаловедения",
+      "description": null,
+      "attributes": {
+        "lab_code": "LAB-MAT",
+        "department": "НИОКР материалов"
+      },
+      "source_refs": []
+    },
+    {
+      "id": "team-hydro",
+      "type": "Team",
+      "name": "Лаборатория гидрометаллургии",
+      "description": null,
+      "attributes": {
+        "lab_code": "LAB-HYD",
+        "department": "Гидрометаллургия"
+      },
+      "source_refs": []
+    },
+    {
+      "id": "team-analytics",
+      "type": "Team",
+      "name": "Лаборатория аналитического контроля",
+      "description": null,
+      "attributes": {
+        "lab_code": "LAB-ANL",
+        "department": "Контроль качества"
+      },
+      "source_refs": []
+    },
+    {
+      "id": "team-rare",
+      "type": "Team",
+      "name": "Лаборатория редких металлов",
+      "description": null,
+      "attributes": {
+        "lab_code": "LAB-RM",
+        "department": "Редкие металлы"
+      },
+      "source_refs": []
+    },
+    {
+      "id": "topic-флотация",
+      "type": "Topic",
+      "name": "флотация",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "topic-никель",
+      "type": "Topic",
+      "name": "никель",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "topic-медь",
+      "type": "Topic",
+      "name": "медь",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "topic-электролиз",
+      "type": "Topic",
+      "name": "электролиз",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "topic-сплавы",
+      "type": "Topic",
+      "name": "сплавы",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "topic-обжиг",
+      "type": "Topic",
+      "name": "обжиг",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "topic-гидрометаллургия",
+      "type": "Topic",
+      "name": "гидрометаллургия",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "topic-механические-свойства",
+      "type": "Topic",
+      "name": "механические свойства",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "topic-коррозия",
+      "type": "Topic",
+      "name": "коррозия",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "topic-анализ",
+      "type": "Topic",
+      "name": "анализ",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "topic-сепарация",
+      "type": "Topic",
+      "name": "сепарация",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "topic-вольфрам",
+      "type": "Topic",
+      "name": "вольфрам",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
       "id": "mat-ni-cu-сульфидный-концентрат",
       "type": "Material",
       "name": "Ni-Cu сульфидный концентрат",
@@ -78,18 +372,30 @@
       ]
     },
     {
-      "id": "topic-флотация",
-      "type": "Topic",
-      "name": "флотация",
+      "id": "mode-флотация-ph-90",
+      "type": "Mode",
+      "name": "флотация pH 9.0",
       "description": null,
       "attributes": {},
       "source_refs": []
     },
     {
-      "id": "topic-никель",
-      "type": "Topic",
-      "name": "никель",
-      "description": null,
+      "id": "EXP-2024-019",
+      "type": "Experiment",
+      "name": "Флотация Ni-Cu при пониженном pH",
+      "description": "pH 9.0 — референсный режим для сравнения",
+      "attributes": {
+        "date": "2024-04-01"
+      },
+      "source_refs": [
+        "DOC-2024-112"
+      ]
+    },
+    {
+      "id": "concl-EXP-2024-019",
+      "type": "Conclusion",
+      "name": "Вывод EXP-2024-019",
+      "description": "pH 9.0 — референсный режим для сравнения",
       "attributes": {},
       "source_refs": []
     },
@@ -157,7 +463,7 @@
       "id": "DOC-2024-089",
       "type": "Document",
       "name": "Электролиз Ni-Cu: температурные режимы",
-      "description": "Сравнение электролиза Ni-Cu сплава при 220°C и 250°C.",
+      "description": "Сравнение электролиза Ni-Cu сплава и анодного никеля при 220°C и 250°C.",
       "attributes": {
         "doc_type": "internal_report",
         "year": 2024,
@@ -170,18 +476,30 @@
       ]
     },
     {
-      "id": "topic-электролиз",
-      "type": "Topic",
-      "name": "электролиз",
+      "id": "mode-электролиз-220c",
+      "type": "Mode",
+      "name": "электролиз 220°C",
       "description": null,
       "attributes": {},
       "source_refs": []
     },
     {
-      "id": "topic-сплавы",
-      "type": "Topic",
-      "name": "сплавы",
-      "description": null,
+      "id": "EXP-2024-028",
+      "type": "Experiment",
+      "name": "Электролиз Ni-Cu сплава при 220°C — базовый режим",
+      "description": "220°C — референс для сравнения с режимом 250°C",
+      "attributes": {
+        "date": "2024-05-18"
+      },
+      "source_refs": [
+        "DOC-2024-089"
+      ]
+    },
+    {
+      "id": "concl-EXP-2024-028",
+      "type": "Conclusion",
+      "name": "Вывод EXP-2024-028",
+      "description": "220°C — референс для сравнения с режимом 250°C",
       "attributes": {},
       "source_refs": []
     },
@@ -232,16 +550,45 @@
     {
       "id": "DOC-2023-201",
       "type": "Document",
-      "name": "DOC-2023-201",
-      "description": "Ссылка из каталога экспериментов",
+      "name": "Обжиг сульфидных концентратов: режимы и экология",
+      "description": "Сравнение обжига при 750°C и 800°C. Влияние на зольность и выбросы SO₂.",
+      "attributes": {
+        "doc_type": "internal_report",
+        "year": 2023,
+        "authors": [
+          "Сидорова М.К.",
+          "Волков И.С."
+        ]
+      },
+      "source_refs": [
+        "DOC-2023-201"
+      ]
+    },
+    {
+      "id": "mode-обжиг-750c",
+      "type": "Mode",
+      "name": "обжиг 750°C",
+      "description": null,
       "attributes": {},
       "source_refs": []
     },
     {
-      "id": "topic-обжиг",
-      "type": "Topic",
-      "name": "обжиг",
-      "description": null,
+      "id": "EXP-2024-041",
+      "type": "Experiment",
+      "name": "Обжиг концентрата при 750°C",
+      "description": "750°C недостаточно для снижения зольности — предпочтителен режим 800°C",
+      "attributes": {
+        "date": "2024-02-10"
+      },
+      "source_refs": [
+        "DOC-2023-201"
+      ]
+    },
+    {
+      "id": "concl-EXP-2024-041",
+      "type": "Conclusion",
+      "name": "Вывод EXP-2024-041",
+      "description": "750°C недостаточно для снижения зольности — предпочтителен режим 800°C",
       "attributes": {},
       "source_refs": []
     },
@@ -315,59 +662,424 @@
       ]
     },
     {
-      "id": "topic-механические-свойства",
-      "type": "Topic",
-      "name": "механические свойства",
-      "description": null,
-      "attributes": {},
-      "source_refs": []
-    },
-    {
-      "id": "mode-флотация-ph-90",
+      "id": "mode-термообработка-500c-2ч",
       "type": "Mode",
-      "name": "флотация pH 9.0",
+      "name": "термообработка 500°C / 2ч",
       "description": null,
       "attributes": {},
       "source_refs": []
     },
     {
-      "id": "EXP-2024-019",
+      "id": "EXP-2024-060",
       "type": "Experiment",
-      "name": "Флотация Ni-Cu при пониженном pH",
-      "description": "pH 9.0 — референсный режим для сравнения",
+      "name": "Термообработка Ni-Cu при 500°C",
+      "description": "500°C даёт меньший прирост прочности, чем 600°C",
       "attributes": {
-        "date": "2024-04-01"
+        "date": "2024-09-05"
+      },
+      "source_refs": [
+        "DOC-2024-156"
+      ]
+    },
+    {
+      "id": "concl-EXP-2024-060",
+      "type": "Conclusion",
+      "name": "Вывод EXP-2024-060",
+      "description": "500°C даёт меньший прирост прочности, чем 600°C",
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "mode-выщелачивание-h₂so₄-90c",
+      "type": "Mode",
+      "name": "выщелачивание H₂SO₄ 90°C",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "EXP-2024-022",
+      "type": "Experiment",
+      "name": "Кислотное выщелачивание Ni из концентрата",
+      "description": "Выщелачивание при 90°C эффективно для Ni, требуется контроль Cu в растворе",
+      "attributes": {
+        "date": "2024-03-28"
+      },
+      "source_refs": [
+        "DOC-2024-078"
+      ]
+    },
+    {
+      "id": "eq-реактор-rv-12",
+      "type": "Equipment",
+      "name": "реактор RV-12",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "team-лаборатория-гидрометаллургии",
+      "type": "Team",
+      "name": "Лаборатория гидрометаллургии",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "concl-EXP-2024-022",
+      "type": "Conclusion",
+      "name": "Вывод EXP-2024-022",
+      "description": "Выщелачивание при 90°C эффективно для Ni, требуется контроль Cu в растворе",
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "DOC-2024-078",
+      "type": "Document",
+      "name": "Гидрометаллургия Ni: кислотное выщелачивание",
+      "description": "Оптимизация выщелачивания Ni из сульфидного концентрата серной кислотой.",
+      "attributes": {
+        "doc_type": "internal_report",
+        "year": 2024,
+        "authors": [
+          "Морозов А.В."
+        ]
+      },
+      "source_refs": [
+        "DOC-2024-078"
+      ]
+    },
+    {
+      "id": "mat-медный-концентрат",
+      "type": "Material",
+      "name": "медный концентрат",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "prop-извлечение-cu",
+      "type": "Property",
+      "name": "извлечение Cu",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "EXP-2024-035",
+      "type": "Experiment",
+      "name": "Флотация медного концентрата",
+      "description": "Режим pH 10.5 переносится на медный концентрат с хорошим извлечением Cu",
+      "attributes": {
+        "date": "2024-05-05"
       },
       "source_refs": [
         "DOC-2024-112"
       ]
     },
     {
-      "id": "concl-EXP-2024-019",
+      "id": "concl-EXP-2024-035",
       "type": "Conclusion",
-      "name": "Вывод EXP-2024-019",
-      "description": "pH 9.0 — референсный режим для сравнения",
+      "name": "Вывод EXP-2024-035",
+      "description": "Режим pH 10.5 переносится на медный концентрат с хорошим извлечением Cu",
       "attributes": {},
       "source_refs": []
+    },
+    {
+      "id": "mat-анодный-никель",
+      "type": "Material",
+      "name": "анодный никель",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "EXP-2024-048",
+      "type": "Experiment",
+      "name": "Электролитическое рафинирование анодного никеля",
+      "description": "Анодный Ni даёт наивысшую чистоту катода при 250°C",
+      "attributes": {
+        "date": "2024-07-12"
+      },
+      "source_refs": [
+        "DOC-2024-089"
+      ]
+    },
+    {
+      "id": "concl-EXP-2024-048",
+      "type": "Conclusion",
+      "name": "Вывод EXP-2024-048",
+      "description": "Анодный Ni даёт наивысшую чистоту катода при 250°C",
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "mode-испытание-nacl-35-30-сут",
+      "type": "Mode",
+      "name": "испытание NaCl 3.5% / 30 сут",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "prop-скорость-коррозии",
+      "type": "Property",
+      "name": "скорость коррозии",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "EXP-2025-003",
+      "type": "Experiment",
+      "name": "Коррозионная стойкость Ni-Cu в морской среде",
+      "description": "Ni-Cu сплав после термообработки 600°C показывает лучшую коррозионную стойкость",
+      "attributes": {
+        "date": "2025-01-15"
+      },
+      "source_refs": [
+        "DOC-2025-014"
+      ]
+    },
+    {
+      "id": "eq-коррозионная-камера-cc-5",
+      "type": "Equipment",
+      "name": "коррозионная камера CC-5",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "concl-EXP-2025-003",
+      "type": "Conclusion",
+      "name": "Вывод EXP-2025-003",
+      "description": "Ni-Cu сплав после термообработки 600°C показывает лучшую коррозионную стойкость",
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "DOC-2025-014",
+      "type": "Document",
+      "name": "Коррозионная стойкость сплавов Ni-Cu",
+      "description": "Испытания в NaCl 3.5% после различных режимов термообработки.",
+      "attributes": {
+        "doc_type": "article",
+        "year": 2025,
+        "authors": [
+          "Козлова Е.А."
+        ]
+      },
+      "source_refs": [
+        "DOC-2025-014"
+      ]
+    },
+    {
+      "id": "mode-автоклав-200c-15-мпа",
+      "type": "Mode",
+      "name": "автоклав 200°C / 1.5 МПа",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "EXP-2025-011",
+      "type": "Experiment",
+      "name": "Автоклавное выщелачивание Ni-Cu концентрата",
+      "description": "Автоклавное выщелачивание превосходит кислотное по извлечению Ni",
+      "attributes": {
+        "date": "2025-02-20"
+      },
+      "source_refs": [
+        "DOC-2025-021"
+      ]
+    },
+    {
+      "id": "eq-автоклав-ac-200",
+      "type": "Equipment",
+      "name": "автоклав AC-200",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "concl-EXP-2025-011",
+      "type": "Conclusion",
+      "name": "Вывод EXP-2025-011",
+      "description": "Автоклавное выщелачивание превосходит кислотное по извлечению Ni",
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "DOC-2025-021",
+      "type": "Document",
+      "name": "Автоклавная гидрометаллургия Ni-Cu",
+      "description": "Сравнение автоклавного и кислотного выщелачивания.",
+      "attributes": {
+        "doc_type": "internal_report",
+        "year": 2025,
+        "authors": [
+          "Морозов А.В.",
+          "Лебедева О.П."
+        ]
+      },
+      "source_refs": [
+        "DOC-2025-021"
+      ]
+    },
+    {
+      "id": "prop-содержание-ni",
+      "type": "Property",
+      "name": "содержание Ni",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "EXP-2024-071",
+      "type": "Experiment",
+      "name": "Рентгенофазовый анализ Ni-Cu после обжига",
+      "description": "Фазовый состав после обжига соответствует ожидаемому для пентландита",
+      "attributes": {
+        "date": "2024-10-01"
+      },
+      "source_refs": [
+        "DOC-2024-201"
+      ]
+    },
+    {
+      "id": "eq-рентгеновский-дифрактометр-xrd-700",
+      "type": "Equipment",
+      "name": "рентгеновский дифрактометр XRD-700",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "team-лаборатория-аналитического-контроля",
+      "type": "Team",
+      "name": "Лаборатория аналитического контроля",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "concl-EXP-2024-071",
+      "type": "Conclusion",
+      "name": "Вывод EXP-2024-071",
+      "description": "Фазовый состав после обжига соответствует ожидаемому для пентландита",
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "DOC-2024-201",
+      "type": "Document",
+      "name": "Фазовый анализ продуктов обжига",
+      "description": "Рентгенофазовый анализ Ni-Cu концентрата после обжига 800°C.",
+      "attributes": {
+        "doc_type": "protocol",
+        "year": 2024,
+        "authors": [
+          "Фёдорова Н.Г."
+        ]
+      },
+      "source_refs": [
+        "DOC-2024-201"
+      ]
+    },
+    {
+      "id": "mat-вольфрамовый-шлам",
+      "type": "Material",
+      "name": "вольфрамовый шлам",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "mode-магнитная-сепарация-08-тл",
+      "type": "Mode",
+      "name": "магнитная сепарация 0.8 Тл",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "prop-извлечение-w",
+      "type": "Property",
+      "name": "извлечение W",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "EXP-2024-083",
+      "type": "Experiment",
+      "name": "Магнитная сепарация вольфрамового шлама",
+      "description": "Магнитная сепарация перспективна для предобогащения вольфрамового шлама",
+      "attributes": {
+        "date": "2024-11-12"
+      },
+      "source_refs": [
+        "DOC-2024-220"
+      ]
+    },
+    {
+      "id": "eq-магнитный-сепаратор-ms-4",
+      "type": "Equipment",
+      "name": "магнитный сепаратор MS-4",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "team-лаборатория-редких-металлов",
+      "type": "Team",
+      "name": "Лаборатория редких металлов",
+      "description": null,
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "concl-EXP-2024-083",
+      "type": "Conclusion",
+      "name": "Вывод EXP-2024-083",
+      "description": "Магнитная сепарация перспективна для предобогащения вольфрамового шлама",
+      "attributes": {},
+      "source_refs": []
+    },
+    {
+      "id": "DOC-2024-220",
+      "type": "Document",
+      "name": "Переработка вольфрамсодержащих шламов",
+      "description": "Магнитная сепарация как метод предобогащения.",
+      "attributes": {
+        "doc_type": "internal_report",
+        "year": 2024,
+        "authors": [
+          "Орлов Д.М."
+        ]
+      },
+      "source_refs": [
+        "DOC-2024-220"
+      ]
     }
   ],
   "relations": [
     {
-      "id": "e2bafeba-8eb7-464a-9bb6-afbfef5504be",
+      "id": "14379b17-b34d-447c-9240-1a403867ec34",
       "type": "USES_MATERIAL",
       "source_id": "EXP-2024-017",
       "target_id": "mat-ni-cu-сульфидный-концентрат",
       "properties": {}
     },
     {
-      "id": "fccdf53c-5c17-4ec2-81c7-abb9a55829de",
+      "id": "d3145bdb-5990-4565-b4e7-e9de270cfd83",
       "type": "AT_MODE",
       "source_id": "EXP-2024-017",
       "target_id": "mode-флотация-ph-105",
       "properties": {}
     },
     {
-      "id": "ede86ade-be16-421d-939f-d3316fbdcd49",
+      "id": "236e3329-b717-446b-84a8-364f11e8bf92",
       "type": "MEASURES",
       "source_id": "EXP-2024-017",
       "target_id": "prop-извлечение-ni",
@@ -377,268 +1089,77 @@
       }
     },
     {
-      "id": "0ff72769-8596-4a43-8eca-4339d92d08cc",
+      "id": "3a6ecde2-6ab3-47f2-a259-ea080eb1fc8d",
       "type": "ON_EQUIPMENT",
       "source_id": "EXP-2024-017",
       "target_id": "eq-флотационная-машина-fml-8",
       "properties": {}
     },
     {
-      "id": "28ef2ff8-5145-4616-8c2a-47c7f4d10efa",
+      "id": "3a37466e-c885-4ab6-844e-e0bf4f6fb285",
       "type": "CONDUCTED_BY",
       "source_id": "EXP-2024-017",
       "target_id": "team-лаборатория-обогащения",
       "properties": {}
     },
     {
-      "id": "ec06e427-0b5f-448d-b958-6aa8c04941c6",
+      "id": "a7c9b5a3-b4e2-4c36-bd4d-329019699ff3",
       "type": "CONCLUDES",
       "source_id": "EXP-2024-017",
       "target_id": "concl-EXP-2024-017",
       "properties": {}
     },
     {
-      "id": "cc9718f1-5745-4772-a883-f012d0c87d10",
+      "id": "74fde076-d863-4a4b-a2a8-b6b1ad08d365",
       "type": "TAGGED",
       "source_id": "EXP-2024-017",
       "target_id": "topic-флотация",
       "properties": {}
     },
     {
-      "id": "79274bc3-e541-4cf2-bc44-4f4b56eaca7f",
+      "id": "c7ab0579-5ce0-4321-b048-abd263b9e364",
       "type": "TAGGED",
       "source_id": "EXP-2024-017",
       "target_id": "topic-никель",
       "properties": {}
     },
     {
-      "id": "416fa44b-5a9e-46ba-9669-69ec1b5ee1af",
+      "id": "9edc0caa-0da4-455f-a056-289ccbf23eb4",
       "type": "DESCRIBES",
       "source_id": "DOC-2024-112",
       "target_id": "EXP-2024-017",
       "properties": {}
     },
     {
-      "id": "45760359-9f64-4e5f-bf65-40df8a30801b",
+      "id": "1b8cb2f0-1eb5-4e41-a0a9-87129bcc619c",
       "type": "DESCRIBES",
       "source_id": "DOC-2024-112",
       "target_id": "EXP-2024-019",
       "properties": {}
     },
     {
-      "id": "1b93ec86-4873-47fc-97df-ed6e2eb51471",
-      "type": "USES_MATERIAL",
-      "source_id": "EXP-2024-031",
-      "target_id": "mat-ni-cu-сплав",
-      "properties": {}
-    },
-    {
-      "id": "0b4f99c1-a201-46b1-8222-360966165bea",
-      "type": "AT_MODE",
-      "source_id": "EXP-2024-031",
-      "target_id": "mode-электролиз-250c",
-      "properties": {}
-    },
-    {
-      "id": "ba4c4c91-5fc0-408f-8cbc-7058898edf75",
-      "type": "MEASURES",
-      "source_id": "EXP-2024-031",
-      "target_id": "prop-содержание-ni-в-катоде",
-      "properties": {
-        "value": "99.2%",
-        "delta": "+0.8%"
-      }
-    },
-    {
-      "id": "3ee8bd95-8199-4113-9e93-e01b2e456c37",
-      "type": "ON_EQUIPMENT",
-      "source_id": "EXP-2024-031",
-      "target_id": "eq-электролизёр-el-3",
-      "properties": {}
-    },
-    {
-      "id": "a30a36c1-3574-4719-a255-2134d9705b2c",
-      "type": "CONDUCTED_BY",
-      "source_id": "EXP-2024-031",
-      "target_id": "team-центр-электрометаллургии",
-      "properties": {}
-    },
-    {
-      "id": "b1433faf-b665-43ee-a728-df08142f1efc",
-      "type": "CONCLUDES",
-      "source_id": "EXP-2024-031",
-      "target_id": "concl-EXP-2024-031",
-      "properties": {}
-    },
-    {
-      "id": "1f17e6da-8b02-43c3-b5ae-0cc3f5edb7cf",
-      "type": "TAGGED",
-      "source_id": "EXP-2024-031",
-      "target_id": "topic-электролиз",
-      "properties": {}
-    },
-    {
-      "id": "f7780dbe-7b44-47d1-884f-a5dc63838e6a",
-      "type": "TAGGED",
-      "source_id": "EXP-2024-031",
-      "target_id": "topic-сплавы",
-      "properties": {}
-    },
-    {
-      "id": "d40587ff-19fc-45df-ad0e-0ec432ac8fe5",
+      "id": "e9ec250b-0c14-4c79-9c45-50b2747f3f6e",
       "type": "DESCRIBES",
-      "source_id": "DOC-2024-089",
-      "target_id": "EXP-2024-031",
+      "source_id": "DOC-2024-112",
+      "target_id": "EXP-2024-035",
       "properties": {}
     },
     {
-      "id": "5bbc4e0a-1f82-455b-b7ee-a734b3c8bc9c",
-      "type": "USES_MATERIAL",
-      "source_id": "EXP-2023-044",
-      "target_id": "mat-ni-cu-сульфидный-концентрат",
-      "properties": {}
-    },
-    {
-      "id": "b8c5c4af-db0f-4794-9c36-522065248106",
-      "type": "AT_MODE",
-      "source_id": "EXP-2023-044",
-      "target_id": "mode-обжиг-800c",
-      "properties": {}
-    },
-    {
-      "id": "234b957e-5e8f-4a60-a2ea-8131548d93aa",
-      "type": "MEASURES",
-      "source_id": "EXP-2023-044",
-      "target_id": "prop-зольность",
-      "properties": {
-        "value": "2.1%",
-        "delta": "-0.4%"
-      }
-    },
-    {
-      "id": "1c7c4e57-ef68-4d57-bb2c-7d60787b49ea",
-      "type": "ON_EQUIPMENT",
-      "source_id": "EXP-2023-044",
-      "target_id": "eq-печь-обжига-po-2",
-      "properties": {}
-    },
-    {
-      "id": "42f639dc-6577-4d31-9d6e-9603fe6c1b8b",
-      "type": "CONDUCTED_BY",
-      "source_id": "EXP-2023-044",
-      "target_id": "team-лаборатория-обогащения",
-      "properties": {}
-    },
-    {
-      "id": "9871e66b-2dd0-453a-8624-99cc21a66d64",
-      "type": "CONCLUDES",
-      "source_id": "EXP-2023-044",
-      "target_id": "concl-EXP-2023-044",
-      "properties": {}
-    },
-    {
-      "id": "c43eaa03-919f-42a9-b9cf-680e9ec8f527",
-      "type": "TAGGED",
-      "source_id": "EXP-2023-044",
-      "target_id": "topic-обжиг",
-      "properties": {}
-    },
-    {
-      "id": "da66d19c-1852-4a96-a2c0-252e5f9fafed",
-      "type": "TAGGED",
-      "source_id": "EXP-2023-044",
-      "target_id": "topic-никель",
-      "properties": {}
-    },
-    {
-      "id": "38dc85e0-0ff6-4bd2-be81-9ff310a70577",
-      "type": "DESCRIBES",
-      "source_id": "DOC-2023-201",
-      "target_id": "EXP-2023-044",
-      "properties": {}
-    },
-    {
-      "id": "c2c49c9d-55bd-42f0-8ecc-4761279fa2f7",
-      "type": "USES_MATERIAL",
-      "source_id": "EXP-2024-052",
-      "target_id": "mat-ni-cu-сплав",
-      "properties": {}
-    },
-    {
-      "id": "5a171d5c-d619-47ed-a86b-c56235b01223",
-      "type": "AT_MODE",
-      "source_id": "EXP-2024-052",
-      "target_id": "mode-термообработка-600c-2ч",
-      "properties": {}
-    },
-    {
-      "id": "5efa6112-991c-4992-8e95-78d1298175f5",
-      "type": "MEASURES",
-      "source_id": "EXP-2024-052",
-      "target_id": "prop-прочность-на-разрыв",
-      "properties": {
-        "value": "420 МПа",
-        "delta": "+15%"
-      }
-    },
-    {
-      "id": "2715e8b3-66b1-492e-a9ec-59bc5244e28e",
-      "type": "ON_EQUIPMENT",
-      "source_id": "EXP-2024-052",
-      "target_id": "eq-универсальная-испытательная-машина-uim-100",
-      "properties": {}
-    },
-    {
-      "id": "72f69845-329a-481e-8098-61c0e4fb8fcb",
-      "type": "CONDUCTED_BY",
-      "source_id": "EXP-2024-052",
-      "target_id": "team-центр-материаловедения",
-      "properties": {}
-    },
-    {
-      "id": "42c514f2-611c-4806-a56b-3aac3f8be27d",
-      "type": "CONCLUDES",
-      "source_id": "EXP-2024-052",
-      "target_id": "concl-EXP-2024-052",
-      "properties": {}
-    },
-    {
-      "id": "f0b87541-e77f-44f9-a724-aeec5163fb4c",
-      "type": "TAGGED",
-      "source_id": "EXP-2024-052",
-      "target_id": "topic-сплавы",
-      "properties": {}
-    },
-    {
-      "id": "4bd200ae-4a0f-4201-8f88-d88375769c12",
-      "type": "TAGGED",
-      "source_id": "EXP-2024-052",
-      "target_id": "topic-механические-свойства",
-      "properties": {}
-    },
-    {
-      "id": "ad4e0e51-b123-4287-a2f6-d038eb98a061",
-      "type": "DESCRIBES",
-      "source_id": "DOC-2024-156",
-      "target_id": "EXP-2024-052",
-      "properties": {}
-    },
-    {
-      "id": "6994f45d-0ab8-413a-8b17-31965fec0fbd",
+      "id": "cdcc265f-0a0d-40a9-be65-4d4e7de6373f",
       "type": "USES_MATERIAL",
       "source_id": "EXP-2024-019",
       "target_id": "mat-ni-cu-сульфидный-концентрат",
       "properties": {}
     },
     {
-      "id": "b55e80ba-8e1b-4bce-8011-5ecce799b457",
+      "id": "93cc7a4b-a7b5-4c6b-a0fe-34ab5460e25d",
       "type": "AT_MODE",
       "source_id": "EXP-2024-019",
       "target_id": "mode-флотация-ph-90",
       "properties": {}
     },
     {
-      "id": "14d66fbc-11a4-4b68-8d4a-8912eb598be8",
+      "id": "dc8b89a4-469c-4eab-9342-f222ba634f8a",
       "type": "MEASURES",
       "source_id": "EXP-2024-019",
       "target_id": "prop-извлечение-ni",
@@ -648,38 +1169,889 @@
       }
     },
     {
-      "id": "a05c49e7-abed-4f4e-9d0e-23499c2a668f",
+      "id": "6eb14ba5-8bd4-4e3e-825d-6a42c0826f97",
       "type": "ON_EQUIPMENT",
       "source_id": "EXP-2024-019",
       "target_id": "eq-флотационная-машина-fml-8",
       "properties": {}
     },
     {
-      "id": "09b8077a-212a-462d-8001-014ac22638b3",
+      "id": "da6389d3-1b05-4492-84f0-15a7f40bf061",
       "type": "CONDUCTED_BY",
       "source_id": "EXP-2024-019",
       "target_id": "team-лаборатория-обогащения",
       "properties": {}
     },
     {
-      "id": "669e0c9e-e472-4ca8-b395-a184e0e06ff0",
+      "id": "f3171798-780a-4f37-a668-005519384f26",
       "type": "CONCLUDES",
       "source_id": "EXP-2024-019",
       "target_id": "concl-EXP-2024-019",
       "properties": {}
     },
     {
-      "id": "19c83eeb-72a6-4d2e-85a3-1b8f076a7644",
+      "id": "2b4235c9-710b-4500-8849-dbcb5a0d9f92",
       "type": "TAGGED",
       "source_id": "EXP-2024-019",
       "target_id": "topic-флотация",
       "properties": {}
     },
     {
-      "id": "7acaf1b1-efbd-4868-a2b3-a3dc318a7f48",
+      "id": "8bab5c26-8d65-4133-8cbd-ddf5625cc95e",
       "type": "TAGGED",
       "source_id": "EXP-2024-019",
       "target_id": "topic-никель",
+      "properties": {}
+    },
+    {
+      "id": "b980b532-3ea5-44b4-9d5f-569bed4cf928",
+      "type": "USES_MATERIAL",
+      "source_id": "EXP-2024-031",
+      "target_id": "mat-ni-cu-сплав",
+      "properties": {}
+    },
+    {
+      "id": "356e810e-206e-461b-93a3-42b9b505a968",
+      "type": "AT_MODE",
+      "source_id": "EXP-2024-031",
+      "target_id": "mode-электролиз-250c",
+      "properties": {}
+    },
+    {
+      "id": "0d4862f7-e88c-4c06-8dad-6bb80a76f302",
+      "type": "MEASURES",
+      "source_id": "EXP-2024-031",
+      "target_id": "prop-содержание-ni-в-катоде",
+      "properties": {
+        "value": "99.2%",
+        "delta": "+0.8%"
+      }
+    },
+    {
+      "id": "bfa46cb6-3247-4773-bced-8c49b2c997bd",
+      "type": "ON_EQUIPMENT",
+      "source_id": "EXP-2024-031",
+      "target_id": "eq-электролизёр-el-3",
+      "properties": {}
+    },
+    {
+      "id": "1265ab3a-a8d0-45cc-9c70-ee6ec8853a54",
+      "type": "CONDUCTED_BY",
+      "source_id": "EXP-2024-031",
+      "target_id": "team-центр-электрометаллургии",
+      "properties": {}
+    },
+    {
+      "id": "d046a71d-fe22-465b-ba78-f38d95b878a5",
+      "type": "CONCLUDES",
+      "source_id": "EXP-2024-031",
+      "target_id": "concl-EXP-2024-031",
+      "properties": {}
+    },
+    {
+      "id": "04a57fb5-796b-4ad2-bec1-1f301c3d9b1b",
+      "type": "TAGGED",
+      "source_id": "EXP-2024-031",
+      "target_id": "topic-электролиз",
+      "properties": {}
+    },
+    {
+      "id": "b5d14b74-519f-4678-9c9d-5008cd2cd137",
+      "type": "TAGGED",
+      "source_id": "EXP-2024-031",
+      "target_id": "topic-сплавы",
+      "properties": {}
+    },
+    {
+      "id": "d2e8d1db-841a-4054-9a38-f6bb6a649e09",
+      "type": "DESCRIBES",
+      "source_id": "DOC-2024-089",
+      "target_id": "EXP-2024-031",
+      "properties": {}
+    },
+    {
+      "id": "7a4a5d1c-2873-44c8-9953-b546dcc98a66",
+      "type": "DESCRIBES",
+      "source_id": "DOC-2024-089",
+      "target_id": "EXP-2024-028",
+      "properties": {}
+    },
+    {
+      "id": "701ae1df-9f22-428c-a43f-640ecee7ae3f",
+      "type": "DESCRIBES",
+      "source_id": "DOC-2024-089",
+      "target_id": "EXP-2024-048",
+      "properties": {}
+    },
+    {
+      "id": "4011f370-90b3-40d5-bb36-248de967690b",
+      "type": "USES_MATERIAL",
+      "source_id": "EXP-2024-028",
+      "target_id": "mat-ni-cu-сплав",
+      "properties": {}
+    },
+    {
+      "id": "7134aebe-4a1a-4d7a-94d8-5693c28b1873",
+      "type": "AT_MODE",
+      "source_id": "EXP-2024-028",
+      "target_id": "mode-электролиз-220c",
+      "properties": {}
+    },
+    {
+      "id": "e808f326-6287-45b1-b43c-3f31f9d58e79",
+      "type": "MEASURES",
+      "source_id": "EXP-2024-028",
+      "target_id": "prop-содержание-ni-в-катоде",
+      "properties": {
+        "value": "98.4%",
+        "delta": "базовый уровень"
+      }
+    },
+    {
+      "id": "8b996adc-3981-4fd5-9bdc-eb651bc4b219",
+      "type": "ON_EQUIPMENT",
+      "source_id": "EXP-2024-028",
+      "target_id": "eq-электролизёр-el-3",
+      "properties": {}
+    },
+    {
+      "id": "9adc2790-356d-4d44-aa5e-f6f6176dc3e0",
+      "type": "CONDUCTED_BY",
+      "source_id": "EXP-2024-028",
+      "target_id": "team-центр-электрометаллургии",
+      "properties": {}
+    },
+    {
+      "id": "e4278656-c96a-4164-b29c-08430175ed2a",
+      "type": "CONCLUDES",
+      "source_id": "EXP-2024-028",
+      "target_id": "concl-EXP-2024-028",
+      "properties": {}
+    },
+    {
+      "id": "f57b289a-716a-4082-bf5d-ae0f092b7855",
+      "type": "TAGGED",
+      "source_id": "EXP-2024-028",
+      "target_id": "topic-электролиз",
+      "properties": {}
+    },
+    {
+      "id": "1d72ff84-c1a6-427e-b094-6270b9b22d0d",
+      "type": "TAGGED",
+      "source_id": "EXP-2024-028",
+      "target_id": "topic-сплавы",
+      "properties": {}
+    },
+    {
+      "id": "16cbd948-0ce2-4775-bd59-d3799d4891e6",
+      "type": "USES_MATERIAL",
+      "source_id": "EXP-2023-044",
+      "target_id": "mat-ni-cu-сульфидный-концентрат",
+      "properties": {}
+    },
+    {
+      "id": "25fa86e1-7825-495d-83c6-cae6f713d22d",
+      "type": "AT_MODE",
+      "source_id": "EXP-2023-044",
+      "target_id": "mode-обжиг-800c",
+      "properties": {}
+    },
+    {
+      "id": "522a937a-192f-4d72-aa5c-fa5716928c32",
+      "type": "MEASURES",
+      "source_id": "EXP-2023-044",
+      "target_id": "prop-зольность",
+      "properties": {
+        "value": "2.1%",
+        "delta": "-0.4%"
+      }
+    },
+    {
+      "id": "03adc9a1-680f-495d-ac41-187ed64ac960",
+      "type": "ON_EQUIPMENT",
+      "source_id": "EXP-2023-044",
+      "target_id": "eq-печь-обжига-po-2",
+      "properties": {}
+    },
+    {
+      "id": "00a8e5ce-8d42-4937-a497-4effab1d4f0f",
+      "type": "CONDUCTED_BY",
+      "source_id": "EXP-2023-044",
+      "target_id": "team-лаборатория-обогащения",
+      "properties": {}
+    },
+    {
+      "id": "2fb832b8-f1a8-47c4-b15c-6e53ff2f4abe",
+      "type": "CONCLUDES",
+      "source_id": "EXP-2023-044",
+      "target_id": "concl-EXP-2023-044",
+      "properties": {}
+    },
+    {
+      "id": "c837e24d-a241-4e4a-9120-ec4e9c462744",
+      "type": "TAGGED",
+      "source_id": "EXP-2023-044",
+      "target_id": "topic-обжиг",
+      "properties": {}
+    },
+    {
+      "id": "02d50f8d-685c-4ff9-8c64-e1ccb55a2344",
+      "type": "TAGGED",
+      "source_id": "EXP-2023-044",
+      "target_id": "topic-никель",
+      "properties": {}
+    },
+    {
+      "id": "e6ef8793-67b7-4e28-911e-cd1a21639201",
+      "type": "DESCRIBES",
+      "source_id": "DOC-2023-201",
+      "target_id": "EXP-2023-044",
+      "properties": {}
+    },
+    {
+      "id": "8ae1fce8-e57f-47a8-990a-885dc392b4a8",
+      "type": "DESCRIBES",
+      "source_id": "DOC-2023-201",
+      "target_id": "EXP-2024-041",
+      "properties": {}
+    },
+    {
+      "id": "887d3373-0e47-4371-8dd7-360cc269158f",
+      "type": "USES_MATERIAL",
+      "source_id": "EXP-2024-041",
+      "target_id": "mat-ni-cu-сульфидный-концентрат",
+      "properties": {}
+    },
+    {
+      "id": "70f6a172-f2d2-4077-a390-ec55bab0a0a0",
+      "type": "AT_MODE",
+      "source_id": "EXP-2024-041",
+      "target_id": "mode-обжиг-750c",
+      "properties": {}
+    },
+    {
+      "id": "c05cafbe-ae91-473b-a824-2e31c907c003",
+      "type": "MEASURES",
+      "source_id": "EXP-2024-041",
+      "target_id": "prop-зольность",
+      "properties": {
+        "value": "2.5%",
+        "delta": "без улучшения vs 800°C"
+      }
+    },
+    {
+      "id": "47f607c3-2c8b-4ff4-ab4c-d66294326d2c",
+      "type": "ON_EQUIPMENT",
+      "source_id": "EXP-2024-041",
+      "target_id": "eq-печь-обжига-po-2",
+      "properties": {}
+    },
+    {
+      "id": "babe1d3d-925b-407a-a1a6-ef368205106b",
+      "type": "CONDUCTED_BY",
+      "source_id": "EXP-2024-041",
+      "target_id": "team-лаборатория-обогащения",
+      "properties": {}
+    },
+    {
+      "id": "b69e024d-e507-46ed-90f2-9f54b2f03a24",
+      "type": "CONCLUDES",
+      "source_id": "EXP-2024-041",
+      "target_id": "concl-EXP-2024-041",
+      "properties": {}
+    },
+    {
+      "id": "25b1be6c-9713-49ed-9c79-b1df44a00c2f",
+      "type": "TAGGED",
+      "source_id": "EXP-2024-041",
+      "target_id": "topic-обжиг",
+      "properties": {}
+    },
+    {
+      "id": "8510058e-735b-4997-92e4-8b049390164e",
+      "type": "TAGGED",
+      "source_id": "EXP-2024-041",
+      "target_id": "topic-никель",
+      "properties": {}
+    },
+    {
+      "id": "dee270d9-4121-4a8f-ba75-e86c7704f581",
+      "type": "USES_MATERIAL",
+      "source_id": "EXP-2024-052",
+      "target_id": "mat-ni-cu-сплав",
+      "properties": {}
+    },
+    {
+      "id": "f2423b06-4078-425a-a51f-109b1e14abf3",
+      "type": "AT_MODE",
+      "source_id": "EXP-2024-052",
+      "target_id": "mode-термообработка-600c-2ч",
+      "properties": {}
+    },
+    {
+      "id": "14c43b8e-6b00-46db-8647-fc4d626b9ace",
+      "type": "MEASURES",
+      "source_id": "EXP-2024-052",
+      "target_id": "prop-прочность-на-разрыв",
+      "properties": {
+        "value": "420 МПа",
+        "delta": "+15%"
+      }
+    },
+    {
+      "id": "df105c21-f65f-40d9-939b-85e654299296",
+      "type": "ON_EQUIPMENT",
+      "source_id": "EXP-2024-052",
+      "target_id": "eq-универсальная-испытательная-машина-uim-100",
+      "properties": {}
+    },
+    {
+      "id": "27b564cc-3336-42a1-b35a-cbec64f7a114",
+      "type": "CONDUCTED_BY",
+      "source_id": "EXP-2024-052",
+      "target_id": "team-центр-материаловедения",
+      "properties": {}
+    },
+    {
+      "id": "3545e31a-e527-40df-80a2-1a1ba6fb9f33",
+      "type": "CONCLUDES",
+      "source_id": "EXP-2024-052",
+      "target_id": "concl-EXP-2024-052",
+      "properties": {}
+    },
+    {
+      "id": "12536de8-9cef-4e9e-8e4c-d47ae7387267",
+      "type": "TAGGED",
+      "source_id": "EXP-2024-052",
+      "target_id": "topic-сплавы",
+      "properties": {}
+    },
+    {
+      "id": "668aa7ce-9a31-48c9-af4e-c307cdb60884",
+      "type": "TAGGED",
+      "source_id": "EXP-2024-052",
+      "target_id": "topic-механические-свойства",
+      "properties": {}
+    },
+    {
+      "id": "f18d5eec-c8d1-4933-8f2c-f70eebf7c08d",
+      "type": "DESCRIBES",
+      "source_id": "DOC-2024-156",
+      "target_id": "EXP-2024-052",
+      "properties": {}
+    },
+    {
+      "id": "0c665184-eb29-419a-adee-44c0cb9ebc4c",
+      "type": "DESCRIBES",
+      "source_id": "DOC-2024-156",
+      "target_id": "EXP-2024-060",
+      "properties": {}
+    },
+    {
+      "id": "b2ef0270-4848-4d8c-9801-41909f31d2c2",
+      "type": "USES_MATERIAL",
+      "source_id": "EXP-2024-060",
+      "target_id": "mat-ni-cu-сплав",
+      "properties": {}
+    },
+    {
+      "id": "54d684ca-914c-49af-bb28-94bc27255e1b",
+      "type": "AT_MODE",
+      "source_id": "EXP-2024-060",
+      "target_id": "mode-термообработка-500c-2ч",
+      "properties": {}
+    },
+    {
+      "id": "47434942-6ab3-43aa-a81a-ff8a9dac908d",
+      "type": "MEASURES",
+      "source_id": "EXP-2024-060",
+      "target_id": "prop-прочность-на-разрыв",
+      "properties": {
+        "value": "395 МПа",
+        "delta": "+8%"
+      }
+    },
+    {
+      "id": "4507dff5-7c50-43b9-ad31-dcad056b3c0d",
+      "type": "ON_EQUIPMENT",
+      "source_id": "EXP-2024-060",
+      "target_id": "eq-универсальная-испытательная-машина-uim-100",
+      "properties": {}
+    },
+    {
+      "id": "88e6421b-9878-4842-837a-a6300ca4ed3c",
+      "type": "CONDUCTED_BY",
+      "source_id": "EXP-2024-060",
+      "target_id": "team-центр-материаловедения",
+      "properties": {}
+    },
+    {
+      "id": "b19977a9-84b4-4e9a-b33e-37529489beb6",
+      "type": "CONCLUDES",
+      "source_id": "EXP-2024-060",
+      "target_id": "concl-EXP-2024-060",
+      "properties": {}
+    },
+    {
+      "id": "373b2903-5688-434a-9358-04ad7cacee45",
+      "type": "TAGGED",
+      "source_id": "EXP-2024-060",
+      "target_id": "topic-сплавы",
+      "properties": {}
+    },
+    {
+      "id": "beff9577-bef7-4f79-9d90-d73f5fc01207",
+      "type": "TAGGED",
+      "source_id": "EXP-2024-060",
+      "target_id": "topic-механические-свойства",
+      "properties": {}
+    },
+    {
+      "id": "a5cde719-726b-4902-8ed2-38509223ead3",
+      "type": "USES_MATERIAL",
+      "source_id": "EXP-2024-022",
+      "target_id": "mat-ni-cu-сульфидный-концентрат",
+      "properties": {}
+    },
+    {
+      "id": "10e8964d-330b-424a-9f9b-bead73b76f34",
+      "type": "AT_MODE",
+      "source_id": "EXP-2024-022",
+      "target_id": "mode-выщелачивание-h₂so₄-90c",
+      "properties": {}
+    },
+    {
+      "id": "30e34d55-aa5b-470b-bb8a-284194f70724",
+      "type": "MEASURES",
+      "source_id": "EXP-2024-022",
+      "target_id": "prop-извлечение-ni",
+      "properties": {
+        "value": "91.5%",
+        "delta": "+4.2%"
+      }
+    },
+    {
+      "id": "f9322e07-73c9-4ed0-93b1-470ae3136a75",
+      "type": "ON_EQUIPMENT",
+      "source_id": "EXP-2024-022",
+      "target_id": "eq-реактор-rv-12",
+      "properties": {}
+    },
+    {
+      "id": "f77281aa-7129-44ed-a11c-9b5cd61d8eec",
+      "type": "CONDUCTED_BY",
+      "source_id": "EXP-2024-022",
+      "target_id": "team-лаборатория-гидрометаллургии",
+      "properties": {}
+    },
+    {
+      "id": "f43753df-15dd-4680-88fb-4be3f4f57887",
+      "type": "CONCLUDES",
+      "source_id": "EXP-2024-022",
+      "target_id": "concl-EXP-2024-022",
+      "properties": {}
+    },
+    {
+      "id": "c0b186fc-297d-4309-b7e7-c805f1a0425d",
+      "type": "TAGGED",
+      "source_id": "EXP-2024-022",
+      "target_id": "topic-гидрометаллургия",
+      "properties": {}
+    },
+    {
+      "id": "620f0b47-61ee-41df-a476-e576c69a2363",
+      "type": "TAGGED",
+      "source_id": "EXP-2024-022",
+      "target_id": "topic-никель",
+      "properties": {}
+    },
+    {
+      "id": "5309b365-69e4-4fa5-8ed3-bfa58418c8a4",
+      "type": "DESCRIBES",
+      "source_id": "DOC-2024-078",
+      "target_id": "EXP-2024-022",
+      "properties": {}
+    },
+    {
+      "id": "9c2a3973-124b-4b05-ab46-8a68d6ba85cc",
+      "type": "USES_MATERIAL",
+      "source_id": "EXP-2024-035",
+      "target_id": "mat-медный-концентрат",
+      "properties": {}
+    },
+    {
+      "id": "cd1171f2-0035-464c-b767-08fa9cf95027",
+      "type": "AT_MODE",
+      "source_id": "EXP-2024-035",
+      "target_id": "mode-флотация-ph-105",
+      "properties": {}
+    },
+    {
+      "id": "761df816-3a01-42e4-b232-62bd45ff893a",
+      "type": "MEASURES",
+      "source_id": "EXP-2024-035",
+      "target_id": "prop-извлечение-cu",
+      "properties": {
+        "value": "92.1%",
+        "delta": "+1.8%"
+      }
+    },
+    {
+      "id": "c3e8b089-a4e8-4c8e-baeb-68b09aa84021",
+      "type": "ON_EQUIPMENT",
+      "source_id": "EXP-2024-035",
+      "target_id": "eq-флотационная-машина-fml-8",
+      "properties": {}
+    },
+    {
+      "id": "2ca54a08-28e8-434f-b3f9-75623517aa82",
+      "type": "CONDUCTED_BY",
+      "source_id": "EXP-2024-035",
+      "target_id": "team-лаборатория-обогащения",
+      "properties": {}
+    },
+    {
+      "id": "e2ab5d8d-3c50-4939-8561-a36b4cb9ac35",
+      "type": "CONCLUDES",
+      "source_id": "EXP-2024-035",
+      "target_id": "concl-EXP-2024-035",
+      "properties": {}
+    },
+    {
+      "id": "ce915b7c-6195-4923-9c1e-3a6f232be5b0",
+      "type": "TAGGED",
+      "source_id": "EXP-2024-035",
+      "target_id": "topic-флотация",
+      "properties": {}
+    },
+    {
+      "id": "5325fb74-fbf2-477d-88dc-0c632e6e5cab",
+      "type": "TAGGED",
+      "source_id": "EXP-2024-035",
+      "target_id": "topic-медь",
+      "properties": {}
+    },
+    {
+      "id": "6f682aaa-e994-460d-ab11-36448583833b",
+      "type": "USES_MATERIAL",
+      "source_id": "EXP-2024-048",
+      "target_id": "mat-анодный-никель",
+      "properties": {}
+    },
+    {
+      "id": "24553ae8-229f-454c-b96d-feac04ca2b0b",
+      "type": "AT_MODE",
+      "source_id": "EXP-2024-048",
+      "target_id": "mode-электролиз-250c",
+      "properties": {}
+    },
+    {
+      "id": "caacd89c-9cad-4318-8c46-6b373e278a93",
+      "type": "MEASURES",
+      "source_id": "EXP-2024-048",
+      "target_id": "prop-содержание-ni-в-катоде",
+      "properties": {
+        "value": "99.8%",
+        "delta": "+0.3%"
+      }
+    },
+    {
+      "id": "5f277a6f-37d5-4a12-a6ed-73fbb2e1836f",
+      "type": "ON_EQUIPMENT",
+      "source_id": "EXP-2024-048",
+      "target_id": "eq-электролизёр-el-3",
+      "properties": {}
+    },
+    {
+      "id": "010ba99d-710c-40e4-b250-1e000b48786f",
+      "type": "CONDUCTED_BY",
+      "source_id": "EXP-2024-048",
+      "target_id": "team-центр-электрометаллургии",
+      "properties": {}
+    },
+    {
+      "id": "aff76d69-82bd-4a26-8e99-03eacacc03d4",
+      "type": "CONCLUDES",
+      "source_id": "EXP-2024-048",
+      "target_id": "concl-EXP-2024-048",
+      "properties": {}
+    },
+    {
+      "id": "227d8905-d616-4ace-a18f-56b000832fc7",
+      "type": "TAGGED",
+      "source_id": "EXP-2024-048",
+      "target_id": "topic-электролиз",
+      "properties": {}
+    },
+    {
+      "id": "74a5518e-a1b1-4ac6-9f8b-99110e6d1c32",
+      "type": "TAGGED",
+      "source_id": "EXP-2024-048",
+      "target_id": "topic-никель",
+      "properties": {}
+    },
+    {
+      "id": "a21bc49b-b481-474d-a275-3cc8c5dc2fed",
+      "type": "USES_MATERIAL",
+      "source_id": "EXP-2025-003",
+      "target_id": "mat-ni-cu-сплав",
+      "properties": {}
+    },
+    {
+      "id": "d7a2593b-afb8-4811-a90c-d52f782595bb",
+      "type": "AT_MODE",
+      "source_id": "EXP-2025-003",
+      "target_id": "mode-испытание-nacl-35-30-сут",
+      "properties": {}
+    },
+    {
+      "id": "7a7f4e29-406c-40a2-9571-a804b94669f3",
+      "type": "MEASURES",
+      "source_id": "EXP-2025-003",
+      "target_id": "prop-скорость-коррозии",
+      "properties": {
+        "value": "0.12 мм/год",
+        "delta": "-20% vs контроль"
+      }
+    },
+    {
+      "id": "f241fa05-62cf-4ca3-97f8-9604b1c38983",
+      "type": "ON_EQUIPMENT",
+      "source_id": "EXP-2025-003",
+      "target_id": "eq-коррозионная-камера-cc-5",
+      "properties": {}
+    },
+    {
+      "id": "0f5063c0-2fb5-4815-accd-e2be8651cccc",
+      "type": "CONDUCTED_BY",
+      "source_id": "EXP-2025-003",
+      "target_id": "team-центр-материаловедения",
+      "properties": {}
+    },
+    {
+      "id": "fba7b594-d2ba-4211-9c28-d090dbbcaf46",
+      "type": "CONCLUDES",
+      "source_id": "EXP-2025-003",
+      "target_id": "concl-EXP-2025-003",
+      "properties": {}
+    },
+    {
+      "id": "dc208cbf-f82a-4b99-9d16-929b861b6680",
+      "type": "TAGGED",
+      "source_id": "EXP-2025-003",
+      "target_id": "topic-коррозия",
+      "properties": {}
+    },
+    {
+      "id": "10531e87-be59-4318-812a-8443915e9ad6",
+      "type": "TAGGED",
+      "source_id": "EXP-2025-003",
+      "target_id": "topic-сплавы",
+      "properties": {}
+    },
+    {
+      "id": "70bcfd38-6876-49eb-a132-600a753c057b",
+      "type": "DESCRIBES",
+      "source_id": "DOC-2025-014",
+      "target_id": "EXP-2025-003",
+      "properties": {}
+    },
+    {
+      "id": "2e8c8000-1ac9-41aa-bb46-6da3502ad5a9",
+      "type": "USES_MATERIAL",
+      "source_id": "EXP-2025-011",
+      "target_id": "mat-ni-cu-сульфидный-концентрат",
+      "properties": {}
+    },
+    {
+      "id": "fc487aa3-7135-41eb-a3d4-e2d01e085c4a",
+      "type": "AT_MODE",
+      "source_id": "EXP-2025-011",
+      "target_id": "mode-автоклав-200c-15-мпа",
+      "properties": {}
+    },
+    {
+      "id": "4346bcd6-d643-4afc-bde7-3b7251621bc6",
+      "type": "MEASURES",
+      "source_id": "EXP-2025-011",
+      "target_id": "prop-извлечение-ni",
+      "properties": {
+        "value": "94.0%",
+        "delta": "+2.5% vs H₂SO₄"
+      }
+    },
+    {
+      "id": "dc715741-1fc8-41e1-a243-28bfc213712d",
+      "type": "ON_EQUIPMENT",
+      "source_id": "EXP-2025-011",
+      "target_id": "eq-автоклав-ac-200",
+      "properties": {}
+    },
+    {
+      "id": "f853c20e-62ac-4692-bc62-f2adf40e330d",
+      "type": "CONDUCTED_BY",
+      "source_id": "EXP-2025-011",
+      "target_id": "team-лаборатория-гидрометаллургии",
+      "properties": {}
+    },
+    {
+      "id": "9c804a2b-2f34-46d8-b224-473f3a315490",
+      "type": "CONCLUDES",
+      "source_id": "EXP-2025-011",
+      "target_id": "concl-EXP-2025-011",
+      "properties": {}
+    },
+    {
+      "id": "95259b06-43b8-4636-b440-77e1d0a724e4",
+      "type": "TAGGED",
+      "source_id": "EXP-2025-011",
+      "target_id": "topic-гидрометаллургия",
+      "properties": {}
+    },
+    {
+      "id": "10e33505-3326-4409-b1b1-34be4a1dcb40",
+      "type": "TAGGED",
+      "source_id": "EXP-2025-011",
+      "target_id": "topic-никель",
+      "properties": {}
+    },
+    {
+      "id": "a346287b-74c5-4ecb-86e9-54434af172d4",
+      "type": "DESCRIBES",
+      "source_id": "DOC-2025-021",
+      "target_id": "EXP-2025-011",
+      "properties": {}
+    },
+    {
+      "id": "22361af6-9b9d-4663-8666-e1a98bbf2f8d",
+      "type": "USES_MATERIAL",
+      "source_id": "EXP-2024-071",
+      "target_id": "mat-ni-cu-сульфидный-концентрат",
+      "properties": {}
+    },
+    {
+      "id": "f536864a-946f-49ea-88e8-86a3b32ad20f",
+      "type": "AT_MODE",
+      "source_id": "EXP-2024-071",
+      "target_id": "mode-обжиг-800c",
+      "properties": {}
+    },
+    {
+      "id": "71678e0e-af5f-4364-a985-4bbdd0c2fc75",
+      "type": "MEASURES",
+      "source_id": "EXP-2024-071",
+      "target_id": "prop-содержание-ni",
+      "properties": {
+        "value": "18.2%",
+        "delta": "стабильно"
+      }
+    },
+    {
+      "id": "db90fd5f-54f7-4c9f-ac23-39f2948c3018",
+      "type": "ON_EQUIPMENT",
+      "source_id": "EXP-2024-071",
+      "target_id": "eq-рентгеновский-дифрактометр-xrd-700",
+      "properties": {}
+    },
+    {
+      "id": "e0aabb8f-1e6d-4e9e-97c1-40812baa3029",
+      "type": "CONDUCTED_BY",
+      "source_id": "EXP-2024-071",
+      "target_id": "team-лаборатория-аналитического-контроля",
+      "properties": {}
+    },
+    {
+      "id": "2fbed897-2268-4e8d-9441-36901ca6e31f",
+      "type": "CONCLUDES",
+      "source_id": "EXP-2024-071",
+      "target_id": "concl-EXP-2024-071",
+      "properties": {}
+    },
+    {
+      "id": "40963a70-bd92-4e5c-9971-e1c5a7e9dac9",
+      "type": "TAGGED",
+      "source_id": "EXP-2024-071",
+      "target_id": "topic-обжиг",
+      "properties": {}
+    },
+    {
+      "id": "530910f6-18f1-4770-b92d-6aac6bcc9909",
+      "type": "TAGGED",
+      "source_id": "EXP-2024-071",
+      "target_id": "topic-анализ",
+      "properties": {}
+    },
+    {
+      "id": "412d1532-3322-40fb-8875-f1e79d682f76",
+      "type": "DESCRIBES",
+      "source_id": "DOC-2024-201",
+      "target_id": "EXP-2024-071",
+      "properties": {}
+    },
+    {
+      "id": "d1a0f026-ae1c-4343-a312-6aee2e67db65",
+      "type": "USES_MATERIAL",
+      "source_id": "EXP-2024-083",
+      "target_id": "mat-вольфрамовый-шлам",
+      "properties": {}
+    },
+    {
+      "id": "e3f564ca-48b7-4bea-9104-9e20db3c2e68",
+      "type": "AT_MODE",
+      "source_id": "EXP-2024-083",
+      "target_id": "mode-магнитная-сепарация-08-тл",
+      "properties": {}
+    },
+    {
+      "id": "043970a5-0e0e-4f1d-b89a-3119a6e503cb",
+      "type": "MEASURES",
+      "source_id": "EXP-2024-083",
+      "target_id": "prop-извлечение-w",
+      "properties": {
+        "value": "76.5%",
+        "delta": "новый процесс"
+      }
+    },
+    {
+      "id": "e462ba2b-93f5-455e-b2a8-7ea792696dd1",
+      "type": "ON_EQUIPMENT",
+      "source_id": "EXP-2024-083",
+      "target_id": "eq-магнитный-сепаратор-ms-4",
+      "properties": {}
+    },
+    {
+      "id": "9a053e3e-cee9-4599-a29e-a7cb90f37d8f",
+      "type": "CONDUCTED_BY",
+      "source_id": "EXP-2024-083",
+      "target_id": "team-лаборатория-редких-металлов",
+      "properties": {}
+    },
+    {
+      "id": "9465bdf9-d0d4-4c4e-bc54-75a5df91435e",
+      "type": "CONCLUDES",
+      "source_id": "EXP-2024-083",
+      "target_id": "concl-EXP-2024-083",
+      "properties": {}
+    },
+    {
+      "id": "4f1b24e9-fa54-4c18-92c4-130fdd35c037",
+      "type": "TAGGED",
+      "source_id": "EXP-2024-083",
+      "target_id": "topic-сепарация",
+      "properties": {}
+    },
+    {
+      "id": "51dd8e07-ecb0-4d2b-b149-784024c51914",
+      "type": "TAGGED",
+      "source_id": "EXP-2024-083",
+      "target_id": "topic-вольфрам",
+      "properties": {}
+    },
+    {
+      "id": "109980b2-6f0c-4794-aaf4-b89e6b9636ed",
+      "type": "DESCRIBES",
+      "source_id": "DOC-2024-220",
+      "target_id": "EXP-2024-083",
       "properties": {}
     }
   ]

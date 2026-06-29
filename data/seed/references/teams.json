@@ -1,0 +1,8 @@
+[
+  {"id": "team-beneficiation", "name": "Лаборатория обогащения", "lab_code": "LAB-BEN", "department": "Цех обогащения"},
+  {"id": "team-electro", "name": "Центр электрометаллургии", "lab_code": "LAB-ELM", "department": "Электрометаллургия"},
+  {"id": "team-materials", "name": "Центр материаловедения", "lab_code": "LAB-MAT", "department": "НИОКР материалов"},
+  {"id": "team-hydro", "name": "Лаборатория гидрометаллургии", "lab_code": "LAB-HYD", "department": "Гидрометаллургия"},
+  {"id": "team-analytics", "name": "Лаборатория аналитического контроля", "lab_code": "LAB-ANL", "department": "Контроль качества"},
+  {"id": "team-rare", "name": "Лаборатория редких металлов", "lab_code": "LAB-RM", "department": "Редкие металлы"}
+]

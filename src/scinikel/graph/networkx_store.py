@@ -253,18 +253,39 @@ class NetworkXGraphStore(GraphStore):
                     "type": entity.type.value,
                 }
             for rel, neighbor in self.neighbors(eid):
-                edges.append(
-                    {
-                        "id": rel.id,
-                        "source": rel.source_id,
-                        "target": rel.target_id,
-                        "label": rel.type.value,
-                    }
-                )
-                expand(neighbor.id, d + 1)
+                if d < depth:
+                    edges.append(
+                        {
+                            "id": rel.id,
+                            "source": rel.source_id,
+                            "target": rel.target_id,
+                            "label": rel.type.value,
+                        }
+                    )
+                    expand(neighbor.id, d + 1)
+                elif neighbor.id in visited:
+                    edges.append(
+                        {
+                            "id": rel.id,
+                            "source": rel.source_id,
+                            "target": rel.target_id,
+                            "label": rel.type.value,
+                        }
+                    )
 
         expand(center_id, 0)
-        return {"nodes": list(nodes.values()), "edges": edges}
+        seen_edges: set[str] = set()
+        unique_edges: list[dict] = []
+        node_ids = set(nodes.keys())
+        for edge in edges:
+            edge_id = edge["id"]
+            if edge_id in seen_edges:
+                continue
+            if edge["source"] not in node_ids or edge["target"] not in node_ids:
+                continue
+            seen_edges.add(edge_id)
+            unique_edges.append(edge)
+        return {"nodes": list(nodes.values()), "edges": unique_edges}
 
     def export_json(self) -> dict[str, Any]:
         return {

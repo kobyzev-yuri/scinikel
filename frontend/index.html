@@ -17,44 +17,131 @@
         <span id="search-status" class="badge"></span>
         <span id="llm-status" class="badge"></span>
       </div>
+      <nav class="app-tabs" aria-label="Разделы приложения">
+        <button type="button" class="tab-btn active" data-tab="dialog">Диалог</button>
+        <button type="button" class="tab-btn" data-tab="demo">Демо</button>
+        <button type="button" class="tab-btn" data-tab="knowledge">База знаний</button>
+      </nav>
     </header>
 
-    <main>
-      <section class="chat-panel">
-        <div id="messages" class="messages"></div>
-        <form id="chat-form" class="chat-form">
-          <textarea id="input" rows="2" placeholder="Например: что делали по Ni-Cu сплаву при электролизе 250°C?"></textarea>
-          <button type="submit">Спросить</button>
-        </form>
-        <div class="examples">
-          <span>Примеры:</span>
-          <button type="button" class="example" data-q="Что делали по Ni-Cu концентрату при флотации pH 10.5 и какой эффект на извлечение Ni?">флотация Ni</button>
-          <button type="button" class="example" data-q="Кто занимался электролизом и на какой установке?">кто / установка</button>
-          <button type="button" class="example btn-gaps" data-q="Какие комбинации материал×режим ещё не исследованы?">пробелы в данных</button>
+    <div id="tab-dialog" class="tab-panel active">
+      <main class="dialog-layout">
+        <aside class="history-panel">
+          <div class="history-head">
+            <h2>Диалоги</h2>
+            <button type="button" id="new-dialog" class="btn-secondary">+ Новый</button>
+          </div>
+          <ul id="conversation-list" class="conversation-list"></ul>
+        </aside>
+
+        <section class="chat-panel">
+          <div class="chat-toolbar">
+            <span id="dialog-info" class="dialog-info">Диалог · реплика 0</span>
+            <button type="button" id="open-demo-tab" class="btn-demo-link">Демо-примеры →</button>
+          </div>
+          <div id="messages" class="messages"></div>
+          <form id="chat-form" class="chat-form">
+            <textarea id="input" rows="2" placeholder="Задайте вопрос или уточнение к предыдущему ответу…"></textarea>
+            <button type="submit">Спросить</button>
+          </form>
+        </section>
+
+        <aside class="side-panel">
+          <h2>Источники</h2>
+          <ul id="citations"></ul>
+        </aside>
+      </main>
+
+      <section class="graph-section" aria-label="Граф связей">
+        <div class="graph-header">
+          <h2>Граф связей</h2>
+          <div class="graph-tools">
+            <button type="button" id="graph-fit" class="btn-secondary" title="Вписать граф в область">Вписать</button>
+            <button type="button" id="graph-zoom-in" class="btn-secondary" title="Увеличить">+</button>
+            <button type="button" id="graph-zoom-out" class="btn-secondary" title="Уменьшить">−</button>
+            <button type="button" id="graph-expand" class="btn-secondary">Развернуть</button>
+          </div>
+        </div>
+        <div id="graph" class="graph-canvas" tabindex="0"></div>
+        <p id="graph-status" class="graph-hint">Задайте вопрос — здесь появится фрагмент графа</p>
+      </section>
+    </div>
+
+    <div id="tab-demo" class="tab-panel" hidden>
+      <section class="demo-panel">
+        <h2>Демонстрационные сценарии</h2>
+        <p class="demo-panel-intro">
+          Нумерованные вопросы для защиты и отладки. Нажмите карточку — откроется вкладка «Диалог» и вопрос отправится автоматически.
+          После ответа можно уточнять в свободной форме («сравни», «свести в таблицу»).
+        </p>
+        <div id="demo-questions" class="demo-questions" aria-label="Примеры вопросов для демонстрации"></div>
+      </section>
+    </div>
+
+    <div id="tab-knowledge" class="tab-panel" hidden>
+      <section class="knowledge-panel">
+        <h2>Управление базой знаний</h2>
+        <p class="knowledge-intro">
+          Загрузка документов и обслуживание графа — отдельно от диалога исследователя.
+        </p>
+
+        <div class="knowledge-grid">
+          <div class="knowledge-card">
+            <h3>Загрузка данных</h3>
+            <form id="upload-xlsx" class="upload-form">
+              <label>XLSX каталог экспериментов</label>
+              <input type="file" name="file" accept=".xlsx,.xls" />
+              <button type="submit">Загрузить</button>
+            </form>
+            <form id="upload-pdf" class="upload-form">
+              <label>PDF отчёт</label>
+              <input type="file" name="file" accept=".pdf" />
+              <button type="submit">Загрузить</button>
+            </form>
+            <p id="upload-status" class="upload-status"></p>
+          </div>
+
+          <div class="knowledge-card">
+            <h3>Состояние графа</h3>
+            <pre id="graph-detail" class="graph-detail">Загрузка…</pre>
+            <button type="button" id="reload-seed" class="btn-secondary">Перезагрузить демо-данные</button>
+          </div>
+
+          <div class="knowledge-card">
+            <h3>NetworkX сейчас</h3>
+            <p class="card-text">
+              Лёгкий in-memory граф в JSON — достаточно для демо и хакатона:
+              обход связей, gap-analysis, визуализация фрагментов.
+            </p>
+            <h3>Neo4j — когда нужен</h3>
+            <ul class="neo4j-list">
+              <li>Cypher-запросы на больших графах (тысячи экспериментов)</li>
+              <li>Одновременная запись из нескольких ingest-пайплайнов</li>
+              <li>Сложные multi-hop паттерны и аналитика связности</li>
+              <li>Продакшен с репликацией и ACL</li>
+            </ul>
+            <p class="card-muted">Сейчас: <code>GRAPH_BACKEND=networkx</code>. Neo4j — заглушка в коде, включается позже.</p>
+          </div>
         </div>
       </section>
-
-      <aside class="side-panel">
-        <h2>Загрузка данных</h2>
-        <form id="upload-xlsx" class="upload-form">
-          <label>XLSX каталог</label>
-          <input type="file" name="file" accept=".xlsx,.xls" />
-          <button type="submit">Загрузить</button>
-        </form>
-        <form id="upload-pdf" class="upload-form">
-          <label>PDF отчёт</label>
-          <input type="file" name="file" accept=".pdf" />
-          <button type="submit">Загрузить</button>
-        </form>
-        <p id="upload-status" class="upload-status"></p>
-
-        <h2>Граф связей</h2>
-        <div id="graph"></div>
-        <h2>Источники</h2>
-        <ul id="citations"></ul>
-      </aside>
-    </main>
+    </div>
   </div>
-  <script src="/static/app.js"></script>
+
+  <div id="graph-modal" class="graph-modal" hidden>
+    <div class="graph-modal-backdrop" data-close-graph-modal></div>
+    <div class="graph-modal-panel" role="dialog" aria-modal="true" aria-label="Граф связей — развёрнутый вид">
+      <div class="graph-header">
+        <h2>Граф связей</h2>
+        <div class="graph-tools">
+          <button type="button" id="graph-modal-fit" class="btn-secondary">Вписать</button>
+          <button type="button" id="graph-modal-zoom-in" class="btn-secondary">+</button>
+          <button type="button" id="graph-modal-zoom-out" class="btn-secondary">−</button>
+          <button type="button" id="graph-modal-close" class="btn-secondary">Закрыть</button>
+        </div>
+      </div>
+      <div id="graph-modal-canvas" class="graph-canvas graph-canvas--modal"></div>
+    </div>
+  </div>
+  <script src="/static/app.js?v=3"></script>
 </body>
 </html>

@@ -8,6 +8,8 @@ dist/
 build/
 *.egg-info/
 .chroma/
+.run/
+data/conversations.db
 data/processed/
 data/vectors/
 *.log
