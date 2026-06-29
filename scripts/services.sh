@@ -16,6 +16,7 @@ API_PORT="${SCINIKEL_PORT:-8000}"
 QDRANT_PORT="${QDRANT_PORT:-6333}"
 MODE="local"
 SEED_ON_START=0
+SKIP_QDRANT=0
 
 usage() {
   cat <<'EOF'
@@ -29,11 +30,13 @@ usage() {
 
 Опции:
   --docker      Полный стек через docker compose (api + qdrant)
+  --api-only    Только API, без запуска Qdrant (экономный режим)
   --seed        Перед стартом: python scripts/seed_data.py
   --help        Эта справка
 
 Примеры:
   ./scripts/services.sh start
+  ./scripts/services.sh start --api-only
   ./scripts/services.sh restart
   ./scripts/services.sh --docker start
   ./scripts/services.sh start --seed
@@ -64,6 +67,10 @@ parse_args() {
         ;;
       --seed)
         SEED_ON_START=1
+        shift
+        ;;
+      --api-only)
+        SKIP_QDRANT=1
         shift
         ;;
       --help|-h)
@@ -203,9 +210,10 @@ start_api_local() {
     >"$API_LOG_FILE" 2>&1 &
   echo $! >"$API_PID_FILE"
 
-  for _ in $(seq 1 40); do
+  for _ in $(seq 1 60); do
     if curl -fsS "http://127.0.0.1:${API_PORT}/api/graph/stats" >/dev/null 2>&1; then
       log "API: http://localhost:${API_PORT} (pid $(cat "$API_PID_FILE"), лог ${API_LOG_FILE})"
+      log "CLIP-индекс рисунков продолжается в фоне — см. giab_image_count в /api/search/status"
       return 0
     fi
     if ! kill -0 "$(cat "$API_PID_FILE")" 2>/dev/null; then
@@ -293,7 +301,11 @@ status_docker() {
 
 start_local() {
   maybe_seed
-  start_qdrant_local
+  if [[ "$SKIP_QDRANT" -eq 0 ]]; then
+    start_qdrant_local
+  else
+    log "Режим --api-only: Qdrant не запускается (поиск: keyword)"
+  fi
   start_api_local
   status_local
 }

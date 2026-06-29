@@ -1,18 +1,21 @@
 #!/usr/bin/env bash
 # Создать .venv на системном Python (без Anaconda).
-# Использование: ./scripts/setup_venv.sh [--search]
+# Использование: ./scripts/setup_venv.sh [--search] [--multimodal]
 
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WITH_SEARCH=0
+WITH_MULTIMODAL=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --search) WITH_SEARCH=1; shift ;;
+    --multimodal) WITH_MULTIMODAL=1; shift ;;
     -h|--help)
-      echo "Использование: ./scripts/setup_venv.sh [--search]"
-      echo "  --search  установить опциональные зависимости sentence-transformers/e5"
+      echo "Использование: ./scripts/setup_venv.sh [--search] [--multimodal]"
+      echo "  --search      sentence-transformers / e5 (Qdrant)"
+      echo "  --multimodal  open-clip-torch, Pillow (CLIP ingest)"
       exit 0
       ;;
     *) echo "Неизвестный аргумент: $1" >&2; exit 1 ;;
@@ -59,8 +62,15 @@ source "${ROOT}/.venv/bin/activate"
 python -m pip install -U pip wheel
 
 EXTRA="dev"
+extras=()
 if [[ "$WITH_SEARCH" -eq 1 ]]; then
-  EXTRA="dev,search"
+  extras+=("search")
+fi
+if [[ "$WITH_MULTIMODAL" -eq 1 ]]; then
+  extras+=("multimodal")
+fi
+if [[ ${#extras[@]} -gt 0 ]]; then
+  EXTRA="dev,$(IFS=,; echo "${extras[*]}")"
 fi
 
 pip install -e ".[${EXTRA}]"

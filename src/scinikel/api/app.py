@@ -1,6 +1,8 @@
 """FastAPI application."""
 
+import asyncio
 import json
+import logging
 import shutil
 import tempfile
 from contextlib import asynccontextmanager
@@ -8,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -17,11 +19,22 @@ from scinikel.agent.curator import CuratorAgent
 from scinikel.config import GRAPH_PATH, ROOT, SEED_DIR, settings
 from scinikel.graph import get_graph_store
 from scinikel.graph.networkx_store import NetworkXGraphStore
+from scinikel.ingest.graph_materializer import doc_id_from_title
 from scinikel.ingest.loader import ingest_seed_data, load_experiments_xlsx
 from scinikel.ingest.pdf_parser import parse_pdf
 from scinikel.models.entities import Document, EntityType
 from scinikel.query.engine import HybridQueryEngine
 from scinikel.search.index import DocumentIndex
+from scinikel.services.llm_runtime import (
+    apply_work_mode,
+    list_ollama_models,
+    probe_ollama,
+    probe_proxyapi,
+    runtime_payload,
+    set_runtime_config,
+    vector_search_enabled,
+)
+from scinikel.services.vision_analyzer import vision_status
 from scinikel.storage.conversations import (
     add_message,
     conversation_payload,
@@ -35,6 +48,8 @@ from scinikel.storage.conversations import (
 _agent: ResearchAgent | None = None
 _graph: NetworkXGraphStore | None = None
 _doc_index: DocumentIndex | None = None
+
+logger = logging.getLogger(__name__)
 
 
 def _index_seed_documents(doc_index: DocumentIndex) -> int:
@@ -55,6 +70,71 @@ def _index_seed_documents(doc_index: DocumentIndex) -> int:
     return doc_index.index_documents(docs, texts)
 
 
+def _index_sample_pdfs(doc_index: DocumentIndex) -> int:
+    """Быстрый старт: только BM25-текст. CLIP/Vision — в фоне (как ingest в 3dtoday)."""
+    from scinikel.ingest.pdf_parser import parse_pdf
+    from scinikel.search.pdf_images import persist_pdf_images
+    from scinikel.search.sample_docs import SAMPLE_DOC_META, SAMPLE_DOC_PDFS
+
+    indexed = 0
+    for doc_id, path in SAMPLE_DOC_PDFS.items():
+        if not path.exists():
+            continue
+        if doc_index.has_doc_chunks(doc_id):
+            continue
+        if doc_index.rehydrate_doc_from_qdrant(doc_id) > 0:
+            indexed += 1
+            continue
+        try:
+            parsed = parse_pdf(path, max_pages=50)
+            meta = dict(SAMPLE_DOC_META.get(doc_id) or {})
+            meta.setdefault("title", path.stem)
+            meta.setdefault("doc_type", "report")
+            if doc_index.index_text(doc_id, parsed["content"], meta):
+                indexed += 1
+                logger.info(
+                    "Indexed sample PDF %s (%s chunks)",
+                    doc_id,
+                    doc_index.doc_chunk_count(doc_id),
+                )
+            persist_pdf_images(doc_id, parsed.get("images") or [])
+        except Exception as exc:
+            logger.warning("Sample PDF %s skip: %s", path.name, exc)
+    return indexed
+
+
+def _background_index_sample_images() -> None:
+    """Vision + аннотации куратора + CLIP после старта API."""
+    from scinikel.search.sample_docs import SAMPLE_DOC_PDFS
+
+    idx = _doc_index
+    if idx is None:
+        return
+    for doc_id in SAMPLE_DOC_PDFS:
+        try:
+            n = idx.ensure_doc_images_indexed(doc_id, analyze_images=True)
+            if n:
+                logger.info("Background librarian+CLIP: %s images for %s", n, doc_id)
+        except Exception as exc:
+            logger.warning("Background image index %s: %s", doc_id, exc)
+
+
+def _create_doc_index() -> DocumentIndex:
+    return DocumentIndex(enable_vector=vector_search_enabled())
+
+
+def _rebuild_doc_index() -> DocumentIndex:
+    global _doc_index, _agent
+    doc_index = _create_doc_index()
+    _index_seed_documents(doc_index)
+    _index_sample_pdfs(doc_index)
+    _doc_index = doc_index
+    if _graph is not None:
+        query_engine = HybridQueryEngine(_graph, doc_index)
+        _agent = ResearchAgent(query_engine)
+    return doc_index
+
+
 def _bootstrap() -> tuple[NetworkXGraphStore, DocumentIndex, ResearchAgent]:
     global _graph, _agent, _doc_index
     graph = get_graph_store()
@@ -62,8 +142,9 @@ def _bootstrap() -> tuple[NetworkXGraphStore, DocumentIndex, ResearchAgent]:
         ingest_seed_data(graph, SEED_DIR)
         graph.save(GRAPH_PATH)
 
-    doc_index = DocumentIndex()
+    doc_index = _create_doc_index()
     _index_seed_documents(doc_index)
+    _index_sample_pdfs(doc_index)
 
     query_engine = HybridQueryEngine(graph, doc_index)
     _graph = graph
@@ -76,6 +157,8 @@ def _bootstrap() -> tuple[NetworkXGraphStore, DocumentIndex, ResearchAgent]:
 async def lifespan(_: FastAPI):
     init_db()
     _bootstrap()
+    loop = asyncio.get_running_loop()
+    loop.run_in_executor(None, _background_index_sample_images)
     yield
 
 
@@ -120,6 +203,15 @@ class CurateRequest(BaseModel):
     source: str | None = None
     doc_type: str = "report"
     ingest: bool = True
+
+
+class LLMConfigRequest(BaseModel):
+    work_mode: str | None = Field(default=None, pattern="^(lite|local|full|custom)$")
+    provider: str | None = Field(default=None, pattern="^(proxyapi|ollama)$")
+    openai_model: str | None = None
+    ollama_model: str | None = None
+    answer_mode: str | None = Field(default=None, pattern="^(llm|rule)$")
+    search_mode: str | None = Field(default=None, pattern="^(keyword|vector|hybrid)$")
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -198,20 +290,156 @@ async def conversations_delete(conv_id: str):
 
 @app.get("/api/assistant/status")
 async def assistant_status():
-    idx = _doc_index or DocumentIndex()
+    idx = _doc_index or _create_doc_index()
+    llm = runtime_payload()
+    preset = next((m for m in llm["work_modes"] if m["id"] == llm["work_mode"]), None)
     return {
-        "llm_enabled": settings.llm_enabled,
-        "llm_provider": settings.llm_provider,
-        "llm_model": settings.active_llm_label,
+        "llm_enabled": llm["llm_enabled"],
+        "answer_mode": llm["answer_mode"],
+        "llm_provider": llm["provider"],
+        "llm_model": llm["active_label"],
         "search_backend": idx.backend,
+        "search_mode": llm["search_mode"],
+        "work_mode": llm["work_mode"],
+        "work_mode_name": preset["name"] if preset else llm["work_mode"],
+        "resources": llm.get("resources", {}),
         "graph_entities": _graph.stats()["entities"] if _graph else 0,
+    }
+
+
+@app.get("/api/llm/config")
+async def llm_config_get():
+    payload = runtime_payload()
+    payload["ollama_models"] = list_ollama_models()
+    return payload
+
+
+@app.post("/api/llm/config")
+async def llm_config_set(req: LLMConfigRequest):
+    prev_search = runtime_payload()["search_mode"]
+    try:
+        if req.work_mode and req.work_mode in ("lite", "local", "full"):
+            payload = apply_work_mode(req.work_mode)
+            if req.openai_model or req.ollama_model or req.provider:
+                payload = set_runtime_config(
+                    provider=req.provider,
+                    openai_model=req.openai_model,
+                    ollama_model=req.ollama_model,
+                )
+        else:
+            cfg = runtime_payload()
+            payload = set_runtime_config(
+                provider=req.provider or cfg["provider"],
+                openai_model=req.openai_model,
+                ollama_model=req.ollama_model,
+                answer_mode=req.answer_mode,
+                search_mode=req.search_mode,
+                work_mode=req.work_mode if req.work_mode != "custom" else None,
+            )
+        if payload["search_mode"] != prev_search:
+            idx = _rebuild_doc_index()
+            payload = runtime_payload()
+            payload["search_backend"] = idx.backend
+        else:
+            idx = _doc_index or _create_doc_index()
+            payload["search_backend"] = idx.backend
+        return payload
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
+@app.get("/api/llm/probe")
+async def llm_probe(provider: str | None = None):
+    cfg = runtime_payload()
+    target = provider or cfg["provider"]
+    if target == "ollama":
+        return {"provider": "ollama", **probe_ollama()}
+    return {"provider": "proxyapi", **probe_proxyapi()}
+
+
+@app.get("/api/vision/status")
+async def api_vision_status():
+    return vision_status()
+
+
+@app.get("/api/search/images")
+async def search_images(q: str, limit: int = 5, doc_id: str | None = None):
+    idx = _doc_index or _create_doc_index()
+    hits = idx.search_images(q, limit=limit, doc_id=doc_id)
+    return {
+        "query": q,
+        "backend": "openclip+qdrant" if hits else "unavailable",
+        "results": [
+            {"id": h.id, "score": h.score, "text": h.text, "metadata": h.metadata}
+            for h in hits
+        ],
+    }
+
+
+@app.get("/api/media/images/{image_id:path}")
+async def get_media_image(image_id: str):
+    """Отдать рисунок из кэша (inline в браузере, не скачивание в «Документы»)."""
+    from scinikel.search.pdf_images import resolve_image_file, strip_image_extension
+
+    clean_id = strip_image_extension(image_id.split("/")[-1])
+    path = resolve_image_file(clean_id)
+    if path is None or not path.is_file():
+        logger.warning("Image not found: %s (from %s)", clean_id, image_id)
+        raise HTTPException(404, f"Image not found: {clean_id}")
+    suffix = path.suffix.lower()
+    media = "image/png" if suffix == ".png" else "image/jpeg"
+    return FileResponse(
+        path,
+        media_type=media,
+        filename=path.name,
+        content_disposition_type="inline",
+    )
+
+
+@app.get("/api/search/chunks")
+async def search_chunks(q: str, limit: int = 5):
+    """Прямой поиск по чанкам — для проверки релевантности (этап 1)."""
+    idx = _doc_index or _create_doc_index()
+    hits = idx.search(q, limit=limit)
+    return {
+        "query": q,
+        "backend": idx.backend,
+        "chunk_count": idx.chunk_count,
+        "results": [
+            {
+                "chunk_id": h.metadata.get("chunk_id") or h.id,
+                "doc_id": h.metadata.get("doc_id"),
+                "title": h.metadata.get("title"),
+                "page": h.metadata.get("page"),
+                "score": h.score,
+                "text": h.text[:500],
+                "experiment_ids": h.metadata.get("experiment_ids") or [],
+                "fusion_sources": h.metadata.get("fusion_sources") or [],
+            }
+            for h in hits
+        ],
     }
 
 
 @app.get("/api/search/status")
 async def search_status():
-    idx = _doc_index or DocumentIndex()
-    return {"backend": idx.backend, "qdrant_collection": settings.qdrant_collection}
+    from scinikel.search.image_embeddings import clip_status
+
+    idx = _doc_index or _create_doc_index()
+    llm = runtime_payload()
+    giab = "doc-giab-ni-cu-flotation-water"
+    return {
+        "backend": idx.backend,
+        "backends_active": idx.backends_active(),
+        "chunk_count": idx.chunk_count,
+        "giab_chunk_count": idx.doc_chunk_count(giab),
+        "giab_image_count": idx.doc_image_count(giab),
+        "clip": clip_status(),
+        "search_mode": llm["search_mode"],
+        "vector_search_enabled": llm["vector_search_enabled"],
+        "hybrid_search_enabled": llm.get("hybrid_search_enabled", False),
+        "qdrant_collection": settings.qdrant_collection,
+    }
 
 
 @app.post("/api/ingest/curate")
@@ -230,7 +458,9 @@ async def ingest_curate(req: CurateRequest):
         result = {"extraction": extraction}
 
     if _doc_index and req.content:
-        doc_id = result.get("extraction", {}).get("document", {}).get("id") or slugify_doc(req.title)
+        doc_id = doc_id_from_title(req.title)
+        if result.get("extraction", {}).get("document"):
+            result["extraction"]["document"]["id"] = doc_id
         _doc_index.index_text(doc_id, req.content, {"title": req.title, "doc_type": req.doc_type})
 
     if isinstance(_graph, NetworkXGraphStore):
@@ -239,7 +469,13 @@ async def ingest_curate(req: CurateRequest):
 
 
 @app.post("/api/ingest/pdf")
-async def ingest_pdf(file: UploadFile = File(...), max_pages: int = 20, ingest: bool = True):
+async def ingest_pdf(
+    file: UploadFile = File(...),
+    max_pages: int = 20,
+    ingest: bool = True,
+    analyze_images: bool = True,
+    index_images: bool = True,
+):
     if _graph is None:
         raise HTTPException(503, "Graph not ready")
 
@@ -253,6 +489,11 @@ async def ingest_pdf(file: UploadFile = File(...), max_pages: int = 20, ingest: 
     if not parsed:
         raise HTTPException(400, "Failed to parse PDF")
 
+    upload_title = Path(file.filename or "doc.pdf").stem
+    if upload_title and not upload_title.startswith("tmp"):
+        parsed["title"] = upload_title
+
+    images = parsed.get("images") or []
     curator = CuratorAgent(_graph)
     if ingest:
         result = await curator.review_and_ingest(
@@ -260,22 +501,48 @@ async def ingest_pdf(file: UploadFile = File(...), max_pages: int = 20, ingest: 
             parsed["content"],
             source=parsed.get("source"),
             doc_type="report",
+            images=images,
+            analyze_images=analyze_images,
         )
     else:
         extraction = await curator.review_and_extract(
-            parsed["title"], parsed["content"], source=parsed.get("source")
+            parsed["title"],
+            parsed["content"],
+            source=parsed.get("source"),
+            images=images,
+            analyze_images=analyze_images,
         )
         result = {"extraction": extraction}
+
+    extraction = result.get("extraction") or {}
+    enriched = curator._merge_image_context(parsed["content"], extraction.get("image_analysis"))
+    doc_id = doc_id_from_title(parsed["title"])
+    if extraction.get("document"):
+        extraction["document"]["id"] = doc_id
+
+    images_indexed = 0
+    if _doc_index:
+        _doc_index.index_text(doc_id, enriched, {"title": parsed["title"], "doc_type": "report"})
+        if index_images:
+            analyses = (extraction.get("image_analysis") or {}).get("image_analyses")
+            images_indexed = _index_pdf_images(
+                _doc_index,
+                doc_id,
+                images,
+                parsed["title"],
+                analyze_images=analyze_images,
+                image_analyses=analyses,
+            )
 
     result["parsed"] = {
         "title": parsed["title"],
         "pages_parsed": parsed.get("pages_parsed"),
-        "images_count": len(parsed.get("images", [])),
+        "images_count": len(images),
+        "images_indexed": images_indexed,
+        "analyze_images": analyze_images,
+        "vision_provider": (extraction.get("image_analysis") or {}).get("provider"),
+        "vision_images_used": (extraction.get("image_analysis") or {}).get("relevant_images_count", 0),
     }
-
-    if _doc_index:
-        doc_id = result.get("extraction", {}).get("document", {}).get("id") or slugify_doc(parsed["title"])
-        _doc_index.index_text(doc_id, parsed["content"], {"title": parsed["title"], "doc_type": "report"})
 
     if isinstance(_graph, NetworkXGraphStore):
         _graph.save(GRAPH_PATH)
@@ -341,7 +608,26 @@ async def reload_data():
 
 
 def slugify_doc(title: str) -> str:
-    import re
+    """Deprecated alias — используйте doc_id_from_title."""
+    return doc_id_from_title(title)
 
-    base = re.sub(r"[^\w\s-]", "", title.lower())
-    return "doc-" + re.sub(r"[\s_]+", "-", base.strip())[:48]
+
+def _index_pdf_images(
+    doc_index: DocumentIndex,
+    doc_id: str,
+    images: list[dict[str, Any]],
+    title: str,
+    *,
+    analyze_images: bool = True,
+    image_analyses: list[dict[str, Any]] | None = None,
+) -> int:
+    from scinikel.search.pdf_images import index_pdf_images
+
+    return index_pdf_images(
+        doc_index,
+        doc_id,
+        images,
+        title,
+        analyze_images=analyze_images,
+        image_analyses=image_analyses,
+    )

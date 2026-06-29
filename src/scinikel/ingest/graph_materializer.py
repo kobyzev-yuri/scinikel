@@ -24,6 +24,11 @@ def slugify(text: str) -> str:
     return re.sub(r"[\s_]+", "-", base.strip())[:64]
 
 
+def doc_id_from_title(title: str) -> str:
+    """Стабильный id документа для индекса и графа (из имени файла / заголовка)."""
+    return f"doc-{slugify(title)}"
+
+
 def _ensure_entity(store: NetworkXGraphStore, cache: dict[str, str], key: str, factory):
     if key not in cache:
         entity = factory()

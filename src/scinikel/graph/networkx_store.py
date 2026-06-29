@@ -355,10 +355,18 @@ def _tokenize(text: str) -> set[str]:
 def _fuzzy_match(needle: str, haystack: list[dict[str, Any]]) -> bool:
     n = needle.lower()
     n_tokens = _tokenize(n)
+    needle_nums = set(re.findall(r"[\d.]+", n))
     for item in haystack:
         name = item.get("name", "").lower()
         if n in name or name in n:
             return True
+        name_nums = set(re.findall(r"[\d.]+", name))
+        if needle_nums and name_nums:
+            if needle_nums != name_nums:
+                continue
+            return True
+        elif needle_nums and not name_nums:
+            continue
         overlap = n_tokens & _tokenize(name)
         if len(overlap) >= 2:
             return True

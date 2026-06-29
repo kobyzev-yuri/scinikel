@@ -4,19 +4,154 @@ const input = document.getElementById("input");
 const demoQuestionsEl = document.getElementById("demo-questions");
 const citationsEl = document.getElementById("citations");
 const statsEl = document.getElementById("stats");
-const searchStatusEl = document.getElementById("search-status");
-const llmStatusEl = document.getElementById("llm-status");
+const runtimeModeEl = document.getElementById("runtime-mode");
 const graphEl = document.getElementById("graph");
 const graphModalEl = document.getElementById("graph-modal");
 const graphModalCanvasEl = document.getElementById("graph-modal-canvas");
+const imageModalEl = document.getElementById("image-modal");
+const imageModalImgEl = document.getElementById("image-modal-img");
+const imageModalCaptionEl = document.getElementById("image-modal-caption");
+const imageModalNoteEl = document.getElementById("image-modal-note");
 const uploadStatusEl = document.getElementById("upload-status");
+const ingestResultEl = document.getElementById("ingest-result");
+const visionStatusEl = document.getElementById("vision-status");
 const dialogInfoEl = document.getElementById("dialog-info");
 const newDialogBtn = document.getElementById("new-dialog");
 const conversationListEl = document.getElementById("conversation-list");
 const graphDetailEl = document.getElementById("graph-detail");
 const graphStatusEl = document.getElementById("graph-status");
+const toggleOfflineBtn = document.getElementById("toggle-offline");
+
+let cachedLlmConfig = null;
+let suppressRuntimeAutoApply = false;
 
 const SUBGRAPH_STORAGE_PREFIX = "scinikel:subgraph:";
+
+const WORK_MODE_PRESETS = {
+  lite: { work_mode: "lite", answer_mode: "rule", search_mode: "keyword" },
+  local: { work_mode: "local", answer_mode: "llm", search_mode: "keyword", provider: "ollama" },
+  full: { work_mode: "full", answer_mode: "llm", search_mode: "hybrid" },
+};
+
+function updateOfflineButton(answerMode) {
+  if (!toggleOfflineBtn) return;
+  const noLlm = answerMode === "rule";
+  toggleOfflineBtn.textContent = noLlm ? "Без LLM: вкл" : "Без LLM: выкл";
+  toggleOfflineBtn.classList.toggle("active", noLlm);
+  toggleOfflineBtn.title = noLlm
+    ? "LLM отключён — ответы только из графа. Нажмите, чтобы включить LLM."
+    : "Отключить LLM — ответы только из графа (минимум ресурсов)";
+}
+
+function showRuntimeToast(message, isError = false) {
+  if (!llmStatusMsgEl) return;
+  llmStatusMsgEl.textContent = message;
+  llmStatusMsgEl.className = `llm-status-msg ${isError ? "err" : "ok"}`;
+}
+
+function formatRuntimeModeLabel(status) {
+  if (status.answer_mode === "rule" || !status.llm_enabled) {
+    return "Без LLM · только граф";
+  }
+  const name = status.work_mode_name && status.work_mode_name !== "Своя настройка"
+    ? status.work_mode_name
+    : "LLM";
+  const search =
+    status.search_mode === "hybrid"
+      ? " + гибрид BM25+e5"
+      : status.search_backend === "qdrant+e5" || status.search_mode === "vector"
+        ? " + семантический поиск"
+        : "";
+  return `${name} · ${status.llm_model}${search}`;
+}
+
+async function fetchLlmConfigCached() {
+  const res = await fetch("/api/llm/config");
+  if (!res.ok) throw new Error("config failed");
+  cachedLlmConfig = await res.json();
+  return cachedLlmConfig;
+}
+
+async function applyAnswerMode(answerMode) {
+  const cfg = cachedLlmConfig || (await fetchLlmConfigCached());
+  const body = {
+    provider: cfg.provider,
+    answer_mode: answerMode,
+    search_mode: cfg.search_mode,
+    openai_model: cfg.openai_model,
+    ollama_model: cfg.ollama_model,
+  };
+  if (answerMode === "rule") {
+    body.work_mode = "lite";
+  } else if (cfg.work_mode === "lite") {
+    body.work_mode = "local";
+  }
+  return applyRuntimeConfig(body);
+}
+
+async function applyWorkModePreset(workMode) {
+  const preset = WORK_MODE_PRESETS[workMode];
+  if (!preset) throw new Error(`Неизвестный профиль: ${workMode}`);
+  const cfg = cachedLlmConfig || (await fetchLlmConfigCached());
+  const body = { ...preset };
+  if (workMode !== "lite" && cfg.ollama_model) body.ollama_model = cfg.ollama_model;
+  if (workMode === "full" && cfg.provider === "proxyapi") body.provider = "proxyapi";
+  if (cfg.openai_model) body.openai_model = cfg.openai_model;
+  return applyRuntimeConfig(body);
+}
+
+async function applyRuntimeConfig(body) {
+  const res = await fetch("/api/llm/config", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  let data;
+  try {
+    data = await res.json();
+  } catch (_) {
+    throw new Error(`Сервер вернул ${res.status} — перезапустите API`);
+  }
+  if (!res.ok) {
+    const detail = data.detail;
+    const msg = Array.isArray(detail)
+      ? detail.map((d) => d.msg).join("; ")
+      : detail || `ошибка ${res.status}`;
+    throw new Error(msg);
+  }
+  cachedLlmConfig = data;
+  syncRuntimeForm(data);
+  updateOfflineButton(data.answer_mode);
+  await loadStatus();
+  return data;
+}
+
+async function toggleOfflineMode() {
+  if (!toggleOfflineBtn) return;
+  toggleOfflineBtn.disabled = true;
+  try {
+    const cfg = await fetchLlmConfigCached();
+    const disableLlm = cfg.answer_mode !== "rule";
+    if (disableLlm) {
+      await applyRuntimeConfig({ answer_mode: "rule", search_mode: "keyword" });
+      showRuntimeToast("LLM отключён — ответы формируются только из графа");
+    } else {
+      await applyRuntimeConfig({
+        answer_mode: "llm",
+        search_mode: cfg.search_mode || "keyword",
+        provider: cfg.provider || "ollama",
+        ollama_model: cfg.ollama_model,
+        openai_model: cfg.openai_model,
+      });
+      showRuntimeToast("LLM снова включён");
+    }
+  } catch (err) {
+    console.error("toggleOfflineMode:", err);
+    showRuntimeToast(`Не удалось переключить: ${err.message}`, true);
+  } finally {
+    toggleOfflineBtn.disabled = false;
+  }
+}
 
 function parseMessageMeta(meta = "") {
   const [kind, center] = (meta || "").split(":", 2);
@@ -121,13 +256,19 @@ const GRAPH_OPTIONS = {
   },
   physics: {
     enabled: true,
-    stabilization: { iterations: 150, fit: true },
+    stabilization: {
+      enabled: true,
+      iterations: 120,
+      updateInterval: 20,
+      fit: true,
+    },
     barnesHut: {
-      gravitationalConstant: -12000,
-      centralGravity: 0.15,
-      springLength: 160,
-      springConstant: 0.04,
-      avoidOverlap: 0.25,
+      gravitationalConstant: -3500,
+      centralGravity: 0.35,
+      springLength: 130,
+      springConstant: 0.06,
+      damping: 0.55,
+      avoidOverlap: 0.4,
     },
   },
   interaction: {
@@ -194,18 +335,27 @@ function buildGraphData(subgraph) {
   return { nodes, edges: new vis.DataSet(edgeRows) };
 }
 
-function fitGraph(net, padding = 40) {
+function fitGraph(net, padding = 40, animate = true) {
   if (!net) return;
-  net.fit({ animation: { duration: 350, easingFunction: "easeInOutQuad" }, padding });
+  net.fit({
+    animation: animate
+      ? { duration: 280, easingFunction: "easeInOutQuad" }
+      : false,
+    padding,
+  });
 }
 
-function zoomGraph(net, factor) {
+/** Остановить физику и вписать граф — иначе узлы «улетают» за край */
+function freezeAndFit(net, padding = 40, onDone) {
   if (!net) return;
-  const scale = net.getScale() * factor;
-  net.moveTo({ scale: Math.min(2.5, Math.max(0.15, scale)) });
+  net.setOptions({ physics: { enabled: false } });
+  fitGraph(net, padding, false);
+  if (typeof onDone === "function") {
+    requestAnimationFrame(() => onDone());
+  }
 }
 
-function mountGraph(container, subgraph, currentNetwork) {
+function mountGraph(container, subgraph, currentNetwork, onReady) {
   if (!subgraph?.nodes?.length) {
     container.innerHTML =
       "<p class='graph-placeholder'>Задайте вопрос — здесь появится фрагмент графа</p>";
@@ -217,17 +367,37 @@ function mountGraph(container, subgraph, currentNetwork) {
   const data = buildGraphData(subgraph);
   if (currentNetwork) currentNetwork.destroy();
   const net = new vis.Network(container, data, GRAPH_OPTIONS);
-  net.once("stabilizationIterationsDone", () => fitGraph(net));
+
+  let settled = false;
+  const settle = () => {
+    if (settled) return;
+    settled = true;
+    const pad = container.classList.contains("graph-canvas--modal") ? 50 : 40;
+    freezeAndFit(net, pad, onReady);
+  };
+
+  net.once("stabilizationIterationsDone", settle);
   net.on("doubleClick", () => fitGraph(net));
+
+  // Малый граф или быстрая стабилизация — подстраховка
+  setTimeout(settle, 600);
+
   return net;
+}
+
+function zoomGraph(net, factor) {
+  if (!net) return;
+  const scale = net.getScale() * factor;
+  net.moveTo({ scale: Math.min(2.5, Math.max(0.15, scale)) });
 }
 
 function openGraphModal() {
   if (!lastSubgraph?.nodes?.length) return;
   graphModalEl.hidden = false;
   document.body.style.overflow = "hidden";
-  modalNetwork = mountGraph(graphModalCanvasEl, lastSubgraph, modalNetwork);
-  setTimeout(() => fitGraph(modalNetwork, 50), 80);
+  modalNetwork = mountGraph(graphModalCanvasEl, lastSubgraph, modalNetwork, () => {
+    fitGraph(modalNetwork, 50);
+  });
 }
 
 function closeGraphModal() {
@@ -237,6 +407,88 @@ function closeGraphModal() {
     modalNetwork.destroy();
     modalNetwork = null;
   }
+}
+
+function openImageLightbox(url, caption = "", note = "") {
+  if (!imageModalEl || !imageModalImgEl) return;
+  const mediaUrl = normalizeMediaUrl(url);
+  if (!mediaUrl.startsWith("/api/media/images/")) return;
+  imageModalImgEl.src = mediaUrl;
+  imageModalImgEl.alt = caption || "Рисунок из документа";
+  if (imageModalCaptionEl) imageModalCaptionEl.textContent = caption || "Рисунок из документа";
+  if (imageModalNoteEl) {
+    imageModalNoteEl.textContent = note || "";
+    imageModalNoteEl.hidden = !note;
+  }
+  imageModalEl.hidden = false;
+  document.body.style.overflow = "hidden";
+}
+
+function closeImageLightbox() {
+  if (!imageModalEl) return;
+  imageModalEl.hidden = true;
+  document.body.style.overflow = "";
+  if (imageModalImgEl) imageModalImgEl.removeAttribute("src");
+}
+
+function imageCitationsFrom(citations) {
+  return (citations || []).filter((c) => c.type === "image" && normalizeMediaUrl(c.image_url));
+}
+
+function buildMediaCard(c) {
+  const url = normalizeMediaUrl(c.image_url);
+  const card = document.createElement("button");
+  card.type = "button";
+  card.className = "msg-media-card";
+  card.dataset.mediaUrl = url;
+  const img = document.createElement("img");
+  img.className = "msg-media-card-img";
+  img.src = url;
+  img.alt = c.title || c.id || "рисунок";
+  img.loading = "lazy";
+  const cap = document.createElement("span");
+  cap.className = "msg-media-card-cap";
+  const page = c.page ? ` · стр. ${c.page}` : "";
+  cap.textContent = `${c.title || c.id || "Рисунок"}${page}`;
+  card.appendChild(img);
+  card.appendChild(cap);
+  const note = c.librarian_annotation || c.snippet || "";
+  card.addEventListener("click", () => openImageLightbox(url, cap.textContent, note));
+  return card;
+}
+
+function wireMediaInElement(root) {
+  if (!root) return;
+  root.querySelectorAll("[data-media-url]").forEach((el) => {
+    if (el.dataset.mediaWired) return;
+    el.dataset.mediaWired = "1";
+    el.addEventListener("click", (e) => {
+      e.preventDefault();
+      openImageLightbox(
+        el.dataset.mediaUrl,
+        el.dataset.mediaCaption || el.querySelector(".msg-media-cap")?.textContent || "",
+        el.dataset.mediaNote || ""
+      );
+    });
+  });
+}
+
+function appendMediaGallery(container, citations) {
+  const images = imageCitationsFrom(citations);
+  if (!images.length) return;
+  const gallery = document.createElement("div");
+  gallery.className = "msg-media-gallery";
+  const title = document.createElement("p");
+  title.className = "msg-media-gallery-title";
+  title.textContent = "Рисунки из документа";
+  gallery.appendChild(title);
+  const grid = document.createElement("div");
+  grid.className = "msg-media-gallery-grid";
+  for (const c of images) {
+    grid.appendChild(buildMediaCard(c));
+  }
+  gallery.appendChild(grid);
+  container.appendChild(gallery);
 }
 
 /** Стандартные вопросы для демо — привязаны к data/seed */
@@ -324,6 +576,36 @@ const DEMO_QUESTIONS = [
         label: "флотация (неоднозначно)",
         q: "Что делали по флотации?",
         clarify: true,
+      },
+    ],
+  },
+  {
+    title: "Мультимодальный поиск",
+    hint: "только doc-giab-ni-cu-flotation-water · новый диалог на каждый клик",
+    items: [
+      {
+        label: "🖼 графики жёсткости",
+        q: "doc-giab-ni-cu-flotation-water: какие графики и таблицы показывают влияние ионов жёсткости воды на флотацию медно-никелевых руд?",
+        multimodal: true,
+        freshDialog: true,
+      },
+      {
+        label: "кальций в пульпе",
+        q: "doc-giab-ni-cu-flotation-water: при какой концентрации кальция в пульпе (мг/дм³) лучшее извлечение никеля? Укажи страницу и фрагмент.",
+        multimodal: true,
+        freshDialog: true,
+      },
+      {
+        label: "рисунки CLIP",
+        q: "doc-giab-ni-cu-flotation-water: найди рисунки с графиками извлечения меди и никеля при флотации.",
+        multimodal: true,
+        freshDialog: true,
+      },
+      {
+        label: "кинетика флотации",
+        q: "doc-giab-ni-cu-flotation-water: что на рисунках по кинетике флотации быстро- и медленнофлотируемых фракций Cu и Ni?",
+        multimodal: true,
+        freshDialog: true,
       },
     ],
   },
@@ -453,7 +735,273 @@ function switchTab(tabName) {
   document.querySelectorAll(".tab-panel").forEach((panel) => {
     panel.hidden = panel.id !== `tab-${tabName}`;
   });
-  if (tabName === "knowledge") loadGraphDetail();
+  if (tabName === "knowledge") {
+    loadGraphDetail();
+    loadVisionStatus();
+  }
+  if (tabName === "llm") loadLlmConfig();
+}
+
+const llmActiveEl = document.getElementById("llm-active");
+const llmOpenaiModelEl = document.getElementById("llm-openai-model");
+const llmOllamaModelEl = document.getElementById("llm-ollama-model");
+const llmProxyapiFields = document.getElementById("llm-proxyapi-fields");
+const llmOllamaFields = document.getElementById("llm-ollama-fields");
+const llmStatusMsgEl = document.getElementById("llm-status-msg");
+const workModeCardsEl = document.getElementById("work-mode-cards");
+const runtimeResourcesEl = document.getElementById("runtime-resources");
+const runtimeAdvancedEl = document.getElementById("runtime-advanced");
+
+const WORK_MODE_ICONS = { lite: "⚡", local: "🖥", full: "🔬" };
+
+function getSelectedLlmProvider() {
+  const checked = document.querySelector('input[name="llm-provider"]:checked');
+  return checked?.value || "proxyapi";
+}
+
+function getSelectedAnswerMode() {
+  const checked = document.querySelector('input[name="llm-answer-mode"]:checked');
+  return checked?.value || "llm";
+}
+
+function getSelectedSearchMode() {
+  const checked = document.querySelector('input[name="search-mode"]:checked');
+  return checked?.value || "keyword";
+}
+
+function resourceTags(resources = {}) {
+  const tags = [];
+  if (resources.ram) tags.push({ text: `RAM: ${resources.ram}`, cls: "ok" });
+  if (resources.llm === false) tags.push({ text: "без LLM", cls: "ok" });
+  if (resources.llm === true) tags.push({ text: "LLM", cls: "warn" });
+  if (resources.vector === false) tags.push({ text: "без Qdrant", cls: "ok" });
+  if (resources.vector === true) tags.push({ text: "Qdrant+e5", cls: "warn" });
+  if (resources.network === false) tags.push({ text: "без сети", cls: "ok" });
+  if (resources.network === true) tags.push({ text: "сеть", cls: "warn" });
+  if (resources.docker === true) tags.push({ text: "Docker", cls: "warn" });
+  return tags;
+}
+
+function renderWorkModeCards(modes, activeId) {
+  if (!workModeCardsEl) return;
+  workModeCardsEl.innerHTML = "";
+  for (const mode of modes.filter((m) => m.id !== "custom")) {
+    const label = document.createElement("label");
+    label.className = `work-mode-card${mode.id === activeId ? " selected" : ""}`;
+    const tags = resourceTags(mode.resources).map(
+      (t) => `<span class="work-mode-tag ${t.cls}">${t.text}</span>`
+    ).join("");
+    label.innerHTML = `
+      <input type="radio" name="work-mode" value="${mode.id}" ${mode.id === activeId ? "checked" : ""} />
+      <span class="work-mode-title">${WORK_MODE_ICONS[mode.id] || "⚙"} ${mode.name}</span>
+      <span class="work-mode-hint">${mode.hint}</span>
+      <div class="work-mode-tags">${tags}</div>
+    `;
+    label.addEventListener("click", async () => {
+      document.querySelectorAll(".work-mode-card").forEach((c) => c.classList.remove("selected"));
+      label.classList.add("selected");
+      label.querySelector("input").checked = true;
+      if (llmStatusMsgEl) {
+        llmStatusMsgEl.textContent = "Применение профиля…";
+        llmStatusMsgEl.className = "llm-status-msg";
+      }
+      try {
+        const data = await applyWorkModePreset(mode.id);
+        if (llmStatusMsgEl) {
+          const noLlm = data.answer_mode === "rule";
+          llmStatusMsgEl.textContent = noLlm
+            ? `Профиль «${mode.name}»: LLM отключён, ответы из графа.`
+            : `Профиль «${mode.name}» применён.`;
+          llmStatusMsgEl.className = "llm-status-msg ok";
+        }
+      } catch (err) {
+        if (llmStatusMsgEl) {
+          llmStatusMsgEl.textContent = `Ошибка: ${err.message}`;
+          llmStatusMsgEl.className = "llm-status-msg err";
+        }
+      }
+    });
+    workModeCardsEl.appendChild(label);
+  }
+}
+
+function renderRuntimeResources(cfg) {
+  if (!runtimeResourcesEl) return;
+  const items = [];
+  const preset = cfg.work_modes?.find((m) => m.id === cfg.work_mode);
+  if (preset) items.push(`Профиль: ${preset.name}`);
+  items.push(`Ответы: ${cfg.answer_mode === "rule" ? "граф (rule-based)" : cfg.active_label}`);
+  items.push(
+    `Поиск: ${
+      cfg.search_mode === "hybrid"
+        ? "гибрид RRF"
+        : cfg.search_mode === "vector"
+          ? "семантический"
+          : "ключевые слова"
+    }`
+  );
+  const r = cfg.resources || {};
+  if (r.ram) items.push(`Память: ${r.ram}`);
+  runtimeResourcesEl.innerHTML = items.map((t) => `<li>${t}</li>`).join("");
+}
+
+function syncRuntimeForm(cfg) {
+  suppressRuntimeAutoApply = true;
+  const modeRadio = document.querySelector(
+    `input[name="llm-answer-mode"][value="${cfg.answer_mode || "llm"}"]`
+  );
+  if (modeRadio) modeRadio.checked = true;
+  const searchRadio = document.querySelector(
+    `input[name="search-mode"][value="${cfg.search_mode || "keyword"}"]`
+  );
+  if (searchRadio) searchRadio.checked = true;
+  const providerRadio = document.querySelector(`input[name="llm-provider"][value="${cfg.provider}"]`);
+  if (providerRadio) providerRadio.checked = true;
+  if (llmOpenaiModelEl) llmOpenaiModelEl.value = cfg.openai_model || "";
+  fillOllamaModelSelect(cfg.ollama_models, cfg.ollama_model);
+  updateLlmFieldsVisibility();
+  if (llmActiveEl) {
+    const preset = cfg.work_modes?.find((m) => m.id === cfg.work_mode);
+    llmActiveEl.textContent = preset
+      ? `${preset.name} · ${cfg.active_label}`
+      : `Сейчас: ${cfg.active_label}`;
+  }
+  renderWorkModeCards(cfg.work_modes || [], cfg.work_mode);
+  renderRuntimeResources(cfg);
+  if (cfg.work_mode === "custom" && runtimeAdvancedEl) runtimeAdvancedEl.open = true;
+  suppressRuntimeAutoApply = false;
+}
+
+function updateLlmFieldsVisibility() {
+  const ruleOnly = getSelectedAnswerMode() === "rule";
+  const provider = getSelectedLlmProvider();
+  const grid = document.querySelector(".llm-provider-grid");
+  if (grid) grid.classList.toggle("disabled", ruleOnly);
+  if (llmProxyapiFields) llmProxyapiFields.hidden = ruleOnly || provider !== "proxyapi";
+  if (llmOllamaFields) llmOllamaFields.hidden = ruleOnly || provider !== "ollama";
+  document.querySelectorAll('input[name="search-mode"]').forEach((el) => {
+    el.closest(".llm-mode-option")?.classList.toggle("disabled", ruleOnly);
+  });
+}
+
+function fillOllamaModelSelect(models, selected) {
+  if (!llmOllamaModelEl) return;
+  llmOllamaModelEl.innerHTML = "";
+  if (!models?.length) {
+    const opt = document.createElement("option");
+    opt.value = selected || "";
+    opt.textContent = selected || "Ollama недоступна — введите имя в config.env";
+    llmOllamaModelEl.appendChild(opt);
+    return;
+  }
+  for (const m of models) {
+    const opt = document.createElement("option");
+    opt.value = m.name;
+    opt.textContent = m.size ? `${m.name} (${m.size})` : m.name;
+    llmOllamaModelEl.appendChild(opt);
+  }
+  if (selected) llmOllamaModelEl.value = selected;
+}
+
+async function loadLlmConfig() {
+  if (!llmActiveEl) return;
+  try {
+    const res = await fetch("/api/llm/config");
+    if (!res.ok) throw new Error("config failed");
+    const cfg = await res.json();
+    cachedLlmConfig = cfg;
+    syncRuntimeForm(cfg);
+    updateOfflineButton(cfg.answer_mode || "llm");
+    if (llmStatusMsgEl && !llmStatusMsgEl.classList.contains("ok")) {
+      if (cfg.answer_mode === "rule") {
+        llmStatusMsgEl.textContent = "Экономный режим: ответы из графа, без LLM и эмбеддингов.";
+      } else if (cfg.search_mode === "keyword") {
+        llmStatusMsgEl.textContent = "Поиск по ключевым словам — Qdrant не используется.";
+      } else {
+        llmStatusMsgEl.textContent = cfg.has_api_key
+          ? "Полный режим: LLM + семантический поиск."
+          : "Для облачного LLM задайте OPENAI_API_KEY в config.env";
+      }
+      llmStatusMsgEl.className = "llm-status-msg";
+    }
+  } catch (err) {
+    llmActiveEl.textContent = "Не удалось загрузить настройки";
+    console.error("loadLlmConfig:", err);
+  }
+}
+
+async function saveLlmConfig() {
+  if (!llmStatusMsgEl) return;
+  const provider = getSelectedLlmProvider();
+  const answer_mode = getSelectedAnswerMode();
+  const search_mode = getSelectedSearchMode();
+  const body = {
+    provider,
+    answer_mode,
+    search_mode,
+    work_mode: "custom",
+  };
+  if (provider === "proxyapi" && llmOpenaiModelEl?.value.trim()) {
+    body.openai_model = llmOpenaiModelEl.value.trim();
+  }
+  if (provider === "ollama" && llmOllamaModelEl?.value) {
+    body.ollama_model = llmOllamaModelEl.value;
+  }
+  llmStatusMsgEl.textContent = "Сохранение…";
+  llmStatusMsgEl.className = "llm-status-msg";
+  try {
+    const data = await applyRuntimeConfig(body);
+    llmStatusMsgEl.textContent =
+      data.work_mode === "lite"
+        ? "Экономный режим: только граф, минимум ресурсов."
+        : `Настройки применены. Поиск: ${data.search_backend || data.search_mode}.`;
+    llmStatusMsgEl.className = "llm-status-msg ok";
+  } catch (err) {
+    llmStatusMsgEl.textContent = `Ошибка: ${err.message}`;
+    llmStatusMsgEl.className = "llm-status-msg err";
+  }
+}
+
+async function refreshOfflineUiFromServer() {
+  try {
+    const cfg = await fetchLlmConfigCached();
+    updateOfflineButton(cfg.answer_mode || "llm");
+  } catch (_) {
+    /* ignore */
+  }
+}
+
+async function probeLlmConfig() {
+  if (!llmStatusMsgEl) return;
+  const provider = getSelectedLlmProvider();
+  llmStatusMsgEl.textContent = "Проверка…";
+  llmStatusMsgEl.className = "llm-status-msg";
+  try {
+    const res = await fetch(`/api/llm/probe?provider=${encodeURIComponent(provider)}`);
+    const data = await res.json();
+    if (data.ok) {
+      const extra =
+        provider === "ollama" && data.models?.length
+          ? ` Модели: ${data.models.join(", ")}`
+          : data.note
+            ? ` ${data.note}`
+            : "";
+      llmStatusMsgEl.textContent = `Соединение OK (${provider})${extra}`;
+      llmStatusMsgEl.className = "llm-status-msg ok";
+      if (provider === "ollama" && data.models?.length) {
+        fillOllamaModelSelect(
+          data.models.map((name) => ({ name, size: "" })),
+          llmOllamaModelEl?.value
+        );
+      }
+    } else {
+      llmStatusMsgEl.textContent = `Ошибка (${provider}): ${data.error || "неизвестно"}`;
+      llmStatusMsgEl.className = "llm-status-msg err";
+    }
+  } catch (err) {
+    llmStatusMsgEl.textContent = `Ошибка: ${err.message}`;
+    llmStatusMsgEl.className = "llm-status-msg err";
+  }
 }
 
 function isTableRow(line) {
@@ -494,8 +1042,56 @@ function renderTableHtml(rows) {
   return html;
 }
 
+function normalizeMediaUrl(href) {
+  if (!href) return "";
+  const raw = String(href).trim();
+  if (raw.includes("<")) {
+    const id = raw.match(/(doc-giab-[\w-]+-p\d+-i\d+)/i);
+    return id ? `/api/media/images/${id[1]}` : "";
+  }
+  if (raw.startsWith("/api/media/images/")) {
+    const tail = raw.slice("/api/media/images/".length).replace(/\.(jpe?g|png|gif|webp)$/i, "");
+    const id = tail.match(/^(doc-giab-[\w-]+-p\d+-i\d+)/i);
+    return id ? `/api/media/images/${id[1]}` : raw.replace(/\.(jpe?g|png|gif|webp)$/i, "");
+  }
+  const fromPath = raw.match(/(doc-giab-[\w-]+-p\d+-i\d+)(?:\.(jpe?g|png|gif|webp))?$/i);
+  if (fromPath) return `/api/media/images/${fromPath[1]}`;
+  const bare = raw.match(/^(doc-giab-[\w-]+-p\d+-i\d+)\.(jpe?g|png|gif|webp)$/i);
+  if (bare) return `/api/media/images/${bare[1]}`;
+  if (/^doc-giab-[\w-]+-p\d+-i\d+$/i.test(raw)) return `/api/media/images/${raw}`;
+  return raw;
+}
+
+function autolinkDocGiabImages(text) {
+  return text.replace(
+    /\b(doc-giab-[\w-]+-p\d+-i\d+)(?:\.(jpe?g|png|gif|webp))?\b/gi,
+    (match, id, _ext, offset, whole) => {
+      if (offset > 0 && whole[offset - 1] === "/") return match;
+      const open = whole.lastIndexOf("(", offset);
+      const close = whole.lastIndexOf(")", offset);
+      if (open > close) return match;
+      return `[${match}](/api/media/images/${id})`;
+    }
+  );
+}
+
 function renderTextBlock(text) {
-  let html = escapeHtml(text);
+  let html = escapeHtml(autolinkDocGiabImages(text));
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_all, label, href) => {
+    const url = normalizeMediaUrl(href);
+    if (url.startsWith("/api/media/images/")) {
+      const cap = label.replace(/^(открыть\s+)?рисунок$/i, "Рисунок").trim() || "Рисунок";
+      return (
+        `<button type="button" class="msg-media-inline" data-media-url="${url}" data-media-caption="${cap}">` +
+        `<img class="msg-media-thumb" src="${url}" alt="${cap}" loading="lazy">` +
+        `<span class="msg-media-cap">${cap}</span></button>`
+      );
+    }
+    if (url.startsWith("/api/")) {
+      return `<a class="msg-link" href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+    }
+    return `[${label}](${href})`;
+  });
   html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   html = html.replace(/^### (.+)$/gm, "<h4>$1</h4>");
   html = html.replace(/^## (.+)$/gm, "<h3>$1</h3>");
@@ -567,11 +1163,13 @@ function appendClarificationOptions(options) {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-function appendMessage(role, text, meta = "") {
+function appendMessage(role, text, meta = "", citations = null) {
   const div = document.createElement("div");
   div.className = `msg ${role}`;
   if (role === "assistant") {
     div.innerHTML = renderMarkdown(text);
+    wireMediaInElement(div);
+    appendMediaGallery(div, citations);
     if (meta) {
       const tag = document.createElement("div");
       tag.className = "msg-meta";
@@ -594,14 +1192,21 @@ async function loadStatus() {
     const graph = await graphRes.json();
     const status = await statusRes.json();
     statsEl.textContent = `Граф: ${graph.entities} сущностей, ${graph.relations} связей`;
-    searchStatusEl.textContent = `Поиск: ${status.search_backend}`;
-    searchStatusEl.className = `badge ${status.search_backend === "qdrant+e5" ? "ok" : "warn"}`;
-    llmStatusEl.textContent = status.llm_enabled
-      ? `LLM: ${status.llm_model}`
-      : "LLM: rule-based";
-    llmStatusEl.className = `badge ${status.llm_enabled ? "ok" : "warn"}`;
+    if (runtimeModeEl) {
+      runtimeModeEl.textContent = formatRuntimeModeLabel(status);
+      const noLlm = status.answer_mode === "rule" || !status.llm_enabled;
+      runtimeModeEl.className = `badge badge-clickable ${noLlm ? "ok mode-lite" : "ok"}`;
+      runtimeModeEl.title = noLlm
+        ? "LLM выключен — ответы только из графа. Нажмите для настройки."
+        : `Режим: ${status.work_mode_name || status.work_mode}. Нажмите для настройки.`;
+    }
+    updateOfflineButton(status.answer_mode || (status.llm_enabled ? "llm" : "rule"));
   } catch (_) {
     statsEl.textContent = "Сервер недоступен";
+    if (runtimeModeEl) {
+      runtimeModeEl.textContent = "Сервер недоступен";
+      runtimeModeEl.className = "badge warn";
+    }
   }
 }
 
@@ -613,12 +1218,10 @@ function renderGraph(subgraph) {
       network = null;
     }
     graphEl.innerHTML =
-      "<p class='graph-placeholder'>Задайте вопрос — здесь появится фрагмент графа</p>";
-    setGraphStatus("Задайте вопрос — здесь появится фрагмент графа");
+      "<p class='graph-placeholder'>Задайте вопрос во вкладке «Диалог» — здесь появится фрагмент графа</p>";
+    setGraphStatus("Задайте вопрос во вкладке «Диалог» — здесь появится фрагмент графа");
     return;
   }
-
-  switchTab("dialog");
 
   const mount = () => {
     if (typeof vis === "undefined") {
@@ -628,14 +1231,15 @@ function renderGraph(subgraph) {
       return;
     }
     try {
-      network = mountGraph(graphEl, subgraph, network);
+      network = mountGraph(graphEl, subgraph, network, () => {
+        graphEl.closest(".graph-section")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
       if (!graphModalEl.hidden && modalNetwork) {
         modalNetwork = mountGraph(graphModalCanvasEl, subgraph, modalNetwork);
       }
       const n = subgraph.nodes.length;
       const e = subgraph.edges?.length || 0;
       setGraphStatus(`Фрагмент графа: ${n} узлов, ${e} связей · колёсико — масштаб, перетаскивание — панорама`);
-      graphEl.closest(".graph-section")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     } catch (err) {
       console.error("renderGraph:", err);
       graphEl.innerHTML =
@@ -651,17 +1255,274 @@ function renderGraph(subgraph) {
   }
 }
 
+function focusGraphNode(nodeId) {
+  if (!nodeId || !network) return;
+  try {
+    network.selectNodes([nodeId]);
+    network.focus(nodeId, { scale: 1.15, animation: { duration: 400, easingFunction: "easeInOutQuad" } });
+    graphEl.closest(".graph-section")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  } catch (err) {
+    console.warn("focusGraphNode:", err);
+  }
+}
+
+const CITATION_LABELS = {
+  experiment: "Эксперимент",
+  document: "Документ",
+  image: "Рисунок",
+};
+
+function escapeHtml(text) {
+  return String(text || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function citationMetaLine(c) {
+  const parts = [];
+  if (c.chunk_id) parts.push(c.chunk_id);
+  else if (c.id && c.type === "document") parts.push(c.id);
+  if (c.id && c.type === "experiment") parts.push(c.id);
+  if (c.page_hint) parts.push(`стр. ${c.page_hint}`);
+  if (c.page) parts.push(`стр. ${c.page}`);
+  if (c.score != null) parts.push(`score ${c.score}`);
+  if (c.excerpt_type === "vision") parts.push("Vision");
+  else if (c.excerpt_type === "chunk") parts.push("фрагмент");
+  if (c.doc_type) parts.push(c.doc_type);
+  if (c.doc_id && c.type === "image") parts.push(c.doc_id);
+  return parts.join(" · ");
+}
+
 function renderCitations(citations) {
+  if (!citationsEl) return;
   citationsEl.innerHTML = "";
   if (!citations?.length) {
-    citationsEl.innerHTML = "<li>—</li>";
+    citationsEl.innerHTML = '<p class="citations-empty">Нет привязанных источников</p>';
     return;
   }
+
   for (const c of citations) {
-    const li = document.createElement("li");
-    li.textContent = `[${c.type}] ${c.title || c.id}`;
-    citationsEl.appendChild(li);
+    const card = document.createElement("article");
+    card.className = `citation-card citation-card--${c.type || "document"}`;
+    card.setAttribute("role", "listitem");
+
+    const head = document.createElement("div");
+    head.className = "citation-head";
+    const badge = document.createElement("span");
+    badge.className = "citation-badge";
+    badge.textContent = CITATION_LABELS[c.type] || c.type || "Источник";
+    const title = document.createElement("p");
+    title.className = "citation-title";
+    title.textContent = c.title || c.id || "—";
+    head.appendChild(badge);
+    head.appendChild(title);
+    card.appendChild(head);
+
+    const metaLine = citationMetaLine(c);
+    if (metaLine) {
+      const meta = document.createElement("p");
+      meta.className = "citation-meta";
+      meta.textContent = metaLine;
+      card.appendChild(meta);
+    }
+
+    if (c.snippet && c.type !== "image") {
+      const snippet = document.createElement("blockquote");
+      snippet.className = `citation-snippet${c.excerpt_type === "vision" ? " citation-snippet--vision" : ""}`;
+      snippet.textContent = c.snippet;
+      card.appendChild(snippet);
+    }
+
+    if (c.type === "image" && c.image_url) {
+      const mediaUrl = normalizeMediaUrl(c.image_url);
+      const figure = document.createElement("figure");
+      figure.className = "citation-figure";
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "citation-figure-link";
+      btn.dataset.mediaUrl = mediaUrl;
+      const img = document.createElement("img");
+      img.className = "citation-thumb";
+      img.src = mediaUrl;
+      img.alt = c.title || c.id || "рисунок";
+      img.loading = "lazy";
+      btn.appendChild(img);
+      const note = c.librarian_annotation || c.snippet || "";
+      btn.addEventListener("click", () =>
+        openImageLightbox(mediaUrl, c.title || c.id || "Рисунок", note)
+      );
+      figure.appendChild(btn);
+      const capText = c.librarian_annotation || c.snippet;
+      if (capText && capText !== c.title) {
+        const cap = document.createElement("figcaption");
+        cap.className = "citation-figure-cap";
+        cap.textContent = capText;
+        figure.appendChild(cap);
+      }
+      card.appendChild(figure);
+      if (c.key_points?.length) {
+        const ul = document.createElement("ul");
+        ul.className = "citation-keypoints";
+        for (const kp of c.key_points) {
+          const li = document.createElement("li");
+          li.textContent = kp;
+          ul.appendChild(li);
+        }
+        card.appendChild(ul);
+      }
+    }
+
+    const actions = document.createElement("div");
+    actions.className = "citation-actions";
+    if (c.type === "experiment" && c.id) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "citation-btn";
+      btn.textContent = "На графе";
+      btn.addEventListener("click", () => {
+        switchTab("main");
+        focusGraphNode(c.id);
+      });
+      actions.appendChild(btn);
+    }
+    if (c.type === "document" && c.id) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "citation-btn";
+      btn.textContent = "Спросить про документ";
+      btn.addEventListener("click", () => {
+        switchTab("dialog");
+        sendMessage(`Что в документе «${c.title || c.id}» по теме последнего вопроса?`);
+      });
+      actions.appendChild(btn);
+    }
+    if (c.type === "image") {
+      if (c.image_url) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "citation-btn";
+        btn.textContent = "Увеличить";
+        btn.addEventListener("click", () => {
+          const mediaUrl = normalizeMediaUrl(c.image_url);
+          openImageLightbox(
+            mediaUrl,
+            c.title || c.id || "Рисунок",
+            c.librarian_annotation || c.snippet || ""
+          );
+        });
+        actions.appendChild(btn);
+      }
+      const label = c.doc_title ? `из «${c.doc_title}»` : c.doc_id || "";
+      if (label) {
+        const hint = document.createElement("span");
+        hint.className = "citation-meta";
+        hint.textContent = label;
+        actions.appendChild(hint);
+      }
+    }
+    if (actions.childNodes.length) card.appendChild(actions);
+
+    citationsEl.appendChild(card);
   }
+}
+
+function renderIngestResult(data) {
+  if (!ingestResultEl) return;
+  const extraction = data.extraction || {};
+  const parsed = data.parsed || {};
+  const exps = extraction.experiments || [];
+  const vision = extraction.image_analysis || {};
+  const analyses = vision.image_analyses || [];
+
+  ingestResultEl.hidden = false;
+  ingestResultEl.innerHTML = "";
+
+  const title = document.createElement("h4");
+  title.textContent = `Загружено: ${parsed.title || "PDF"}`;
+  ingestResultEl.appendChild(title);
+
+  const grid = document.createElement("div");
+  grid.className = "ingest-result-grid";
+  const rows = [
+    ["Страниц обработано", parsed.pages_parsed ?? "—"],
+    ["Картинок в PDF", parsed.images_count ?? 0],
+    ["Vision (описано)", `${parsed.vision_images_used ?? 0} · ${parsed.vision_provider || "—"}`],
+    ["CLIP проиндексировано", parsed.images_indexed ?? 0],
+    ["Экспериментов в граф", exps.length],
+    ["Куратор", extraction.extraction_method || "—"],
+  ];
+  for (const [label, value] of rows) {
+    const row = document.createElement("div");
+    row.className = "ingest-result-row";
+    row.innerHTML = `<span>${escapeHtml(label)}</span><span>${escapeHtml(String(value))}</span>`;
+    grid.appendChild(row);
+  }
+  ingestResultEl.appendChild(grid);
+
+  if (exps[0]) {
+    const exp = exps[0];
+    const expLine = document.createElement("p");
+    expLine.className = "citation-meta";
+    expLine.textContent = [
+      exp.id || exp.experiment_id,
+      exp.process,
+      exp.property_value,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+    ingestResultEl.appendChild(expLine);
+  }
+
+  if (analyses.length) {
+    const visionTitle = document.createElement("p");
+    visionTitle.className = "citation-meta";
+    visionTitle.textContent = "Фрагменты Vision (таблицы / графики):";
+    ingestResultEl.appendChild(visionTitle);
+    for (const row of analyses.slice(0, 3)) {
+      const block = document.createElement("div");
+      block.className = "ingest-vision-block";
+      const page = row.page ? `, стр. ${row.page}` : "";
+      block.textContent = `[${row.image_name || "image"}${page}]\n${(row.analysis || "").slice(0, 400)}`;
+      ingestResultEl.appendChild(block);
+    }
+  }
+
+  const actions = document.createElement("div");
+  actions.className = "ingest-actions";
+  const askBtn = document.createElement("button");
+  askBtn.type = "button";
+  askBtn.className = "btn-secondary";
+  askBtn.textContent = "Спросить в диалоге";
+  askBtn.addEventListener("click", () => {
+    switchTab("dialog");
+    const topic = exps[0]?.process || parsed.title || "этот отчёт";
+    sendMessage(`Что известно по материалам из отчёта «${parsed.title}»? Процесс: ${topic}.`);
+  });
+  actions.appendChild(askBtn);
+
+  if ((parsed.images_indexed || 0) > 0) {
+    const clipBtn = document.createElement("button");
+    clipBtn.type = "button";
+    clipBtn.className = "btn-secondary";
+    clipBtn.textContent = "Поиск по рисункам";
+    clipBtn.addEventListener("click", async () => {
+      try {
+        const q = encodeURIComponent("график извлечения никеля");
+        const res = await fetch(`/api/search/images?q=${q}&limit=3`);
+        const payload = await res.json();
+        const hits = (payload.results || [])
+          .map((h) => `• ${h.metadata?.alt || h.id} (score ${h.score?.toFixed?.(3) ?? h.score})`)
+          .join("\n");
+        uploadStatusEl.textContent = hits || "CLIP: ничего не найдено";
+      } catch (err) {
+        uploadStatusEl.textContent = `CLIP: ${err.message}`;
+      }
+    });
+    actions.appendChild(clipBtn);
+  }
+  ingestResultEl.appendChild(actions);
 }
 
 async function sendMessage(text) {
@@ -700,7 +1561,7 @@ async function sendMessage(text) {
       : data.llm_used
         ? `ответ сформулирован LLM · реплика ${data.turn || ""}`
         : `ответ из графа (без LLM) · реплика ${data.turn || ""}`;
-    appendMessage("assistant", data.message, meta.trim());
+    appendMessage("assistant", data.message, meta.trim(), data.citations);
     appendClarificationOptions(data.clarification_options);
     updateDialogInfo(data.turn);
     try {
@@ -730,6 +1591,21 @@ function warnRenderFailure() {
     "<p class='graph-placeholder'>Ответ получен, но фрагмент графа не отобразился. Обновите страницу.</p>";
 }
 
+async function loadVisionStatus() {
+  if (!visionStatusEl) return;
+  try {
+    const res = await fetch("/api/vision/status");
+    const data = await res.json();
+    const v = data.available ? `${data.provider} (${data.model || "ok"})` : data.message || "недоступен";
+    const clip = data.clip?.available
+      ? `CLIP ${data.clip.model}`
+      : data.clip?.message || "CLIP выкл.";
+    visionStatusEl.textContent = `Vision: ${v} · ${clip}`;
+  } catch {
+    visionStatusEl.textContent = "Vision: статус недоступен";
+  }
+}
+
 async function uploadFile(formEl, endpoint) {
   const fileInput = formEl.querySelector('input[type="file"]');
   if (!fileInput.files?.length) {
@@ -739,16 +1615,39 @@ async function uploadFile(formEl, endpoint) {
   uploadStatusEl.textContent = "Загрузка…";
   const fd = new FormData();
   fd.append("file", fileInput.files[0]);
+  let url = endpoint;
+  if (endpoint.includes("/ingest/pdf")) {
+    const analyze = document.getElementById("pdf-analyze-images")?.checked !== false;
+    const indexImg = document.getElementById("pdf-index-images")?.checked !== false;
+    const qs = new URLSearchParams({
+      analyze_images: String(analyze),
+      index_images: String(indexImg),
+    });
+    url = `${endpoint}?${qs}`;
+  }
   try {
-    const res = await fetch(endpoint, { method: "POST", body: fd });
+    const res = await fetch(url, { method: "POST", body: fd });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || "ошибка");
-    uploadStatusEl.textContent = endpoint.includes("xlsx")
-      ? `Загружено экспериментов: ${data.experiments_loaded ?? "?"}`
-      : "PDF обработан и добавлен в граф";
+    if (endpoint.includes("xlsx")) {
+      uploadStatusEl.textContent = `Загружено экспериментов: ${data.experiments_loaded ?? "?"}`;
+      if (ingestResultEl) ingestResultEl.hidden = true;
+    } else {
+      const p = data.parsed || {};
+      const ex = data.extraction?.experiments?.length ?? 0;
+      const parts = [
+        `PDF: ${p.images_count ?? 0} картинок`,
+        p.vision_provider ? `vision=${p.vision_provider} (${p.vision_images_used ?? 0})` : null,
+        p.images_indexed != null ? `CLIP=${p.images_indexed}` : null,
+        `экспериментов: ${ex}`,
+      ].filter(Boolean);
+      uploadStatusEl.textContent = parts.join(" · ");
+      renderIngestResult(data);
+    }
     fileInput.value = "";
     loadStatus();
     loadGraphDetail();
+    loadVisionStatus();
   } catch (err) {
     uploadStatusEl.textContent = `Ошибка: ${err.message}`;
   }
@@ -789,8 +1688,9 @@ function renderDemoQuestions() {
       globalNum += 1;
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = `example demo-card${item.gaps ? " btn-gaps" : ""}${item.clarify ? " btn-clarify" : ""}`;
+      btn.className = `example demo-card${item.gaps ? " btn-gaps" : ""}${item.clarify ? " btn-clarify" : ""}${item.multimodal ? " btn-multimodal" : ""}`;
       btn.dataset.q = item.q;
+      if (item.freshDialog) btn.dataset.fresh = "1";
       btn.title = item.q;
       btn.innerHTML = `
         <span class="demo-num">${globalNum}</span>
@@ -807,17 +1707,23 @@ function renderDemoQuestions() {
   });
 }
 
-function sendDemoQuestion(text) {
+function sendDemoQuestion(text, options = {}) {
   switchTab("dialog");
-  input.value = "";
-  sendMessage(text);
+  const run = async () => {
+    if (options.freshDialog) {
+      await createConversation(false);
+    }
+    input.value = "";
+    sendMessage(text);
+  };
+  run();
 }
 
 function showWelcome() {
   appendMessage(
     "assistant",
     "Здравствуйте! Я помогаю находить эксперименты, команды и пробелы в исследованиях.\n\n" +
-      "Задайте свой вопрос или откройте вкладку **Демо** — там 16 нумерованных сценариев для презентации. Можно уточнять в диалоге: «сравни», «свести в таблицу»."
+      "Задайте вопрос здесь или откройте вкладку **Демо** — там 20 сценариев (в т.ч. 4 по рисункам GIAB). Граф и источники — на вкладке **Главная**. Можно уточнять: «сравни», «свести в таблицу»."
   );
 }
 
@@ -832,10 +1738,14 @@ form.addEventListener("submit", (e) => {
 demoQuestionsEl?.addEventListener("click", (e) => {
   const btn = e.target.closest(".example");
   if (!btn?.dataset.q) return;
-  sendDemoQuestion(btn.dataset.q);
+  sendDemoQuestion(btn.dataset.q, { freshDialog: btn.dataset.fresh === "1" });
 });
 
 document.getElementById("open-demo-tab")?.addEventListener("click", () => switchTab("demo"));
+document.getElementById("open-dialog-tab")?.addEventListener("click", () => switchTab("dialog"));
+document.getElementById("open-main-tab")?.addEventListener("click", () => switchTab("main"));
+toggleOfflineBtn?.addEventListener("click", toggleOfflineMode);
+runtimeModeEl?.addEventListener("click", () => switchTab("llm"));
 
 messagesEl.addEventListener("click", (e) => {
   const btn = e.target.closest(".clarification-chip");
@@ -854,6 +1764,43 @@ conversationListEl?.addEventListener("click", (e) => {
 document.querySelectorAll(".tab-btn").forEach((btn) => {
   btn.addEventListener("click", () => switchTab(btn.dataset.tab));
 });
+
+document.querySelectorAll('input[name="llm-provider"]').forEach((radio) => {
+  radio.addEventListener("change", updateLlmFieldsVisibility);
+});
+
+document.querySelectorAll('input[name="llm-answer-mode"]').forEach((radio) => {
+  radio.addEventListener("change", async () => {
+    updateLlmFieldsVisibility();
+    if (suppressRuntimeAutoApply) return;
+    const answer_mode = getSelectedAnswerMode();
+    const search_mode = answer_mode === "rule" ? "keyword" : getSelectedSearchMode();
+    try {
+      await applyRuntimeConfig({
+        answer_mode,
+        search_mode,
+        provider: getSelectedLlmProvider(),
+        ollama_model: llmOllamaModelEl?.value,
+        openai_model: llmOpenaiModelEl?.value?.trim(),
+      });
+      showRuntimeToast(
+        answer_mode === "rule" ? "LLM отключён" : "LLM включён — нажмите «Применить» для провайдера"
+      );
+    } catch (err) {
+      showRuntimeToast(`Ошибка: ${err.message}`, true);
+    }
+  });
+});
+
+document.querySelectorAll('input[name="search-mode"]').forEach((radio) => {
+  radio.addEventListener("change", () => {
+    document.querySelectorAll(".work-mode-card").forEach((c) => c.classList.remove("selected"));
+    document.querySelectorAll('input[name="work-mode"]').forEach((r) => { r.checked = false; });
+  });
+});
+
+document.getElementById("llm-save")?.addEventListener("click", saveLlmConfig);
+document.getElementById("llm-probe")?.addEventListener("click", probeLlmConfig);
 
 document.getElementById("reload-seed")?.addEventListener("click", async () => {
   uploadStatusEl.textContent = "Перезагрузка…";
@@ -889,13 +1836,18 @@ document.getElementById("graph-modal-zoom-in")?.addEventListener("click", () => 
 document.getElementById("graph-modal-zoom-out")?.addEventListener("click", () => zoomGraph(modalNetwork, 0.8));
 document.getElementById("graph-modal-close")?.addEventListener("click", closeGraphModal);
 graphModalEl?.querySelector("[data-close-graph-modal]")?.addEventListener("click", closeGraphModal);
+document.getElementById("image-modal-close")?.addEventListener("click", closeImageLightbox);
+imageModalEl?.querySelector("[data-close-image-modal]")?.addEventListener("click", closeImageLightbox);
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && graphModalEl && !graphModalEl.hidden) closeGraphModal();
+  if (e.key !== "Escape") return;
+  if (imageModalEl && !imageModalEl.hidden) closeImageLightbox();
+  else if (graphModalEl && !graphModalEl.hidden) closeGraphModal();
 });
 
 renderDemoQuestions();
 loadStatus();
 loadGraphDetail();
+refreshOfflineUiFromServer();
 
 async function initApp() {
   try {

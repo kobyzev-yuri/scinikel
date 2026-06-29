@@ -1065,21 +1065,21 @@
   ],
   "relations": [
     {
-      "id": "14379b17-b34d-447c-9240-1a403867ec34",
+      "id": "10963164-43e8-4379-9261-36c5a635053b",
       "type": "USES_MATERIAL",
       "source_id": "EXP-2024-017",
       "target_id": "mat-ni-cu-сульфидный-концентрат",
       "properties": {}
     },
     {
-      "id": "d3145bdb-5990-4565-b4e7-e9de270cfd83",
+      "id": "7018369f-b95d-4a46-b3c5-ce749cbd89f0",
       "type": "AT_MODE",
       "source_id": "EXP-2024-017",
       "target_id": "mode-флотация-ph-105",
       "properties": {}
     },
     {
-      "id": "236e3329-b717-446b-84a8-364f11e8bf92",
+      "id": "1b25b204-170f-4240-8fcf-be65ab1577b8",
       "type": "MEASURES",
       "source_id": "EXP-2024-017",
       "target_id": "prop-извлечение-ni",
@@ -1089,77 +1089,77 @@
       }
     },
     {
-      "id": "3a6ecde2-6ab3-47f2-a259-ea080eb1fc8d",
+      "id": "b6f7af72-b95a-41a4-86d1-45fcaff72aa4",
       "type": "ON_EQUIPMENT",
       "source_id": "EXP-2024-017",
       "target_id": "eq-флотационная-машина-fml-8",
       "properties": {}
     },
     {
-      "id": "3a37466e-c885-4ab6-844e-e0bf4f6fb285",
+      "id": "2b2092a6-9729-4082-b976-4fac4e0bc765",
       "type": "CONDUCTED_BY",
       "source_id": "EXP-2024-017",
       "target_id": "team-лаборатория-обогащения",
       "properties": {}
     },
     {
-      "id": "a7c9b5a3-b4e2-4c36-bd4d-329019699ff3",
+      "id": "d19ce161-5319-4b21-8f14-5d574e1465d3",
       "type": "CONCLUDES",
       "source_id": "EXP-2024-017",
       "target_id": "concl-EXP-2024-017",
       "properties": {}
     },
     {
-      "id": "74fde076-d863-4a4b-a2a8-b6b1ad08d365",
+      "id": "556cd5f0-9e0b-4636-90a1-ab09299322f2",
       "type": "TAGGED",
       "source_id": "EXP-2024-017",
       "target_id": "topic-флотация",
       "properties": {}
     },
     {
-      "id": "c7ab0579-5ce0-4321-b048-abd263b9e364",
+      "id": "7f8c3cad-97d2-4c98-931b-a6e0168db58f",
       "type": "TAGGED",
       "source_id": "EXP-2024-017",
       "target_id": "topic-никель",
       "properties": {}
     },
     {
-      "id": "9edc0caa-0da4-455f-a056-289ccbf23eb4",
+      "id": "c12b8cb3-559f-4d9e-a2f8-714695f14b5c",
       "type": "DESCRIBES",
       "source_id": "DOC-2024-112",
       "target_id": "EXP-2024-017",
       "properties": {}
     },
     {
-      "id": "1b8cb2f0-1eb5-4e41-a0a9-87129bcc619c",
+      "id": "fd30455e-2772-45a3-994e-0dd670297b3b",
       "type": "DESCRIBES",
       "source_id": "DOC-2024-112",
       "target_id": "EXP-2024-019",
       "properties": {}
     },
     {
-      "id": "e9ec250b-0c14-4c79-9c45-50b2747f3f6e",
+      "id": "ec94fc01-f505-454f-be0d-cc5424b46ac6",
       "type": "DESCRIBES",
       "source_id": "DOC-2024-112",
       "target_id": "EXP-2024-035",
       "properties": {}
     },
     {
-      "id": "cdcc265f-0a0d-40a9-be65-4d4e7de6373f",
+      "id": "b047a87b-ae53-4919-8129-b94f0d2a4274",
       "type": "USES_MATERIAL",
       "source_id": "EXP-2024-019",
       "target_id": "mat-ni-cu-сульфидный-концентрат",
       "properties": {}
     },
     {
-      "id": "93cc7a4b-a7b5-4c6b-a0fe-34ab5460e25d",
+      "id": "c52e1f21-9656-4346-a828-506f12d63d09",
       "type": "AT_MODE",
       "source_id": "EXP-2024-019",
       "target_id": "mode-флотация-ph-90",
       "properties": {}
     },
     {
-      "id": "dc8b89a4-469c-4eab-9342-f222ba634f8a",
+      "id": "22039bdc-611d-4baf-b310-4e3f90977b58",
       "type": "MEASURES",
       "source_id": "EXP-2024-019",
       "target_id": "prop-извлечение-ni",
@@ -1169,56 +1169,56 @@
       }
     },
     {
-      "id": "6eb14ba5-8bd4-4e3e-825d-6a42c0826f97",
+      "id": "bfe7f1b1-29eb-485e-bd5a-5648dcdbeab0",
       "type": "ON_EQUIPMENT",
       "source_id": "EXP-2024-019",
       "target_id": "eq-флотационная-машина-fml-8",
       "properties": {}
     },
     {
-      "id": "da6389d3-1b05-4492-84f0-15a7f40bf061",
+      "id": "41530467-a7a3-4c49-b9cf-6ddfd2980f8b",
       "type": "CONDUCTED_BY",
       "source_id": "EXP-2024-019",
       "target_id": "team-лаборатория-обогащения",
       "properties": {}
     },
     {
-      "id": "f3171798-780a-4f37-a668-005519384f26",
+      "id": "57efcf52-7199-4e76-b5dd-57260de99f12",
       "type": "CONCLUDES",
       "source_id": "EXP-2024-019",
       "target_id": "concl-EXP-2024-019",
       "properties": {}
     },
     {
-      "id": "2b4235c9-710b-4500-8849-dbcb5a0d9f92",
+      "id": "fb534721-702b-494b-a34f-a01c07499e67",
       "type": "TAGGED",
       "source_id": "EXP-2024-019",
       "target_id": "topic-флотация",
       "properties": {}
     },
     {
-      "id": "8bab5c26-8d65-4133-8cbd-ddf5625cc95e",
+      "id": "9771b03f-d577-4c21-9f06-50f7ef06e237",
       "type": "TAGGED",
       "source_id": "EXP-2024-019",
       "target_id": "topic-никель",
       "properties": {}
     },
     {
-      "id": "b980b532-3ea5-44b4-9d5f-569bed4cf928",
+      "id": "2fcb4d02-e02d-40d6-8b09-b09de01c770e",
       "type": "USES_MATERIAL",
       "source_id": "EXP-2024-031",
       "target_id": "mat-ni-cu-сплав",
       "properties": {}
     },
     {
-      "id": "356e810e-206e-461b-93a3-42b9b505a968",
+      "id": "d20262c5-88ec-47e9-a9cb-393c40b96cf0",
       "type": "AT_MODE",
       "source_id": "EXP-2024-031",
       "target_id": "mode-электролиз-250c",
       "properties": {}
     },
     {
-      "id": "0d4862f7-e88c-4c06-8dad-6bb80a76f302",
+      "id": "b97333e6-47a7-491f-8565-f6d7d96a1cbb",
       "type": "MEASURES",
       "source_id": "EXP-2024-031",
       "target_id": "prop-содержание-ni-в-катоде",
@@ -1228,77 +1228,77 @@
       }
     },
     {
-      "id": "bfa46cb6-3247-4773-bced-8c49b2c997bd",
+      "id": "e4f07b79-1ceb-41e3-8d54-2747af86c507",
       "type": "ON_EQUIPMENT",
       "source_id": "EXP-2024-031",
       "target_id": "eq-электролизёр-el-3",
       "properties": {}
     },
     {
-      "id": "1265ab3a-a8d0-45cc-9c70-ee6ec8853a54",
+      "id": "7e78acf0-8c5e-475b-946e-2c897be3aa74",
       "type": "CONDUCTED_BY",
       "source_id": "EXP-2024-031",
       "target_id": "team-центр-электрометаллургии",
       "properties": {}
     },
     {
-      "id": "d046a71d-fe22-465b-ba78-f38d95b878a5",
+      "id": "896920d0-33f7-4fa5-95c5-928b267a9837",
       "type": "CONCLUDES",
       "source_id": "EXP-2024-031",
       "target_id": "concl-EXP-2024-031",
       "properties": {}
     },
     {
-      "id": "04a57fb5-796b-4ad2-bec1-1f301c3d9b1b",
+      "id": "96618234-f437-4b42-ab37-547439d80181",
       "type": "TAGGED",
       "source_id": "EXP-2024-031",
       "target_id": "topic-электролиз",
       "properties": {}
     },
     {
-      "id": "b5d14b74-519f-4678-9c9d-5008cd2cd137",
+      "id": "8ced29b4-100a-40cb-bef0-1c29ae14e3d8",
       "type": "TAGGED",
       "source_id": "EXP-2024-031",
       "target_id": "topic-сплавы",
       "properties": {}
     },
     {
-      "id": "d2e8d1db-841a-4054-9a38-f6bb6a649e09",
+      "id": "479e3965-c0ab-4c8b-9b33-3706e0871e22",
       "type": "DESCRIBES",
       "source_id": "DOC-2024-089",
       "target_id": "EXP-2024-031",
       "properties": {}
     },
     {
-      "id": "7a4a5d1c-2873-44c8-9953-b546dcc98a66",
+      "id": "ec9005b5-aa9c-493d-af13-9648957cb475",
       "type": "DESCRIBES",
       "source_id": "DOC-2024-089",
       "target_id": "EXP-2024-028",
       "properties": {}
     },
     {
-      "id": "701ae1df-9f22-428c-a43f-640ecee7ae3f",
+      "id": "6804f481-e367-464e-9d6d-b5cc0d6ad7b8",
       "type": "DESCRIBES",
       "source_id": "DOC-2024-089",
       "target_id": "EXP-2024-048",
       "properties": {}
     },
     {
-      "id": "4011f370-90b3-40d5-bb36-248de967690b",
+      "id": "e09cb373-db10-46a3-8ac9-ec686ca5944c",
       "type": "USES_MATERIAL",
       "source_id": "EXP-2024-028",
       "target_id": "mat-ni-cu-сплав",
       "properties": {}
     },
     {
-      "id": "7134aebe-4a1a-4d7a-94d8-5693c28b1873",
+      "id": "f9e2d09b-ea28-4b62-89c8-765031cf77fa",
       "type": "AT_MODE",
       "source_id": "EXP-2024-028",
       "target_id": "mode-электролиз-220c",
       "properties": {}
     },
     {
-      "id": "e808f326-6287-45b1-b43c-3f31f9d58e79",
+      "id": "77ef22ea-ebd0-4817-9f37-2d3f60ec3124",
       "type": "MEASURES",
       "source_id": "EXP-2024-028",
       "target_id": "prop-содержание-ni-в-катоде",
@@ -1308,56 +1308,56 @@
       }
     },
     {
-      "id": "8b996adc-3981-4fd5-9bdc-eb651bc4b219",
+      "id": "727801e4-82d2-42f1-8258-4250d9ace090",
       "type": "ON_EQUIPMENT",
       "source_id": "EXP-2024-028",
       "target_id": "eq-электролизёр-el-3",
       "properties": {}
     },
     {
-      "id": "9adc2790-356d-4d44-aa5e-f6f6176dc3e0",
+      "id": "f5db9736-bc71-45c6-9290-4c725506858b",
       "type": "CONDUCTED_BY",
       "source_id": "EXP-2024-028",
       "target_id": "team-центр-электрометаллургии",
       "properties": {}
     },
     {
-      "id": "e4278656-c96a-4164-b29c-08430175ed2a",
+      "id": "e38850c0-1bde-46e0-940e-7cdef0867f7a",
       "type": "CONCLUDES",
       "source_id": "EXP-2024-028",
       "target_id": "concl-EXP-2024-028",
       "properties": {}
     },
     {
-      "id": "f57b289a-716a-4082-bf5d-ae0f092b7855",
+      "id": "4131e1bb-e8ce-49f5-9124-f1397f606796",
       "type": "TAGGED",
       "source_id": "EXP-2024-028",
       "target_id": "topic-электролиз",
       "properties": {}
     },
     {
-      "id": "1d72ff84-c1a6-427e-b094-6270b9b22d0d",
+      "id": "628269b8-4806-44fb-ad0b-16ad4f66fe42",
       "type": "TAGGED",
       "source_id": "EXP-2024-028",
       "target_id": "topic-сплавы",
       "properties": {}
     },
     {
-      "id": "16cbd948-0ce2-4775-bd59-d3799d4891e6",
+      "id": "004f7ce7-cee9-43a2-9033-6a814597bd54",
       "type": "USES_MATERIAL",
       "source_id": "EXP-2023-044",
       "target_id": "mat-ni-cu-сульфидный-концентрат",
       "properties": {}
     },
     {
-      "id": "25fa86e1-7825-495d-83c6-cae6f713d22d",
+      "id": "cb45477d-4a1b-43e3-be3b-d686c0e58f90",
       "type": "AT_MODE",
       "source_id": "EXP-2023-044",
       "target_id": "mode-обжиг-800c",
       "properties": {}
     },
     {
-      "id": "522a937a-192f-4d72-aa5c-fa5716928c32",
+      "id": "4fd9980a-29d2-43b5-a21e-ced90cc02f87",
       "type": "MEASURES",
       "source_id": "EXP-2023-044",
       "target_id": "prop-зольность",
@@ -1367,70 +1367,70 @@
       }
     },
     {
-      "id": "03adc9a1-680f-495d-ac41-187ed64ac960",
+      "id": "d3ad7844-dfdf-453b-bbfd-8673994ca55d",
       "type": "ON_EQUIPMENT",
       "source_id": "EXP-2023-044",
       "target_id": "eq-печь-обжига-po-2",
       "properties": {}
     },
     {
-      "id": "00a8e5ce-8d42-4937-a497-4effab1d4f0f",
+      "id": "f75ae946-2764-429b-b277-a007cc3f8d55",
       "type": "CONDUCTED_BY",
       "source_id": "EXP-2023-044",
       "target_id": "team-лаборатория-обогащения",
       "properties": {}
     },
     {
-      "id": "2fb832b8-f1a8-47c4-b15c-6e53ff2f4abe",
+      "id": "dc2370f3-c467-4650-b249-2b0eb3d5789b",
       "type": "CONCLUDES",
       "source_id": "EXP-2023-044",
       "target_id": "concl-EXP-2023-044",
       "properties": {}
     },
     {
-      "id": "c837e24d-a241-4e4a-9120-ec4e9c462744",
+      "id": "e061b6a3-ce7a-4ca7-ab9d-564a5fe57658",
       "type": "TAGGED",
       "source_id": "EXP-2023-044",
       "target_id": "topic-обжиг",
       "properties": {}
     },
     {
-      "id": "02d50f8d-685c-4ff9-8c64-e1ccb55a2344",
+      "id": "3189aa45-24fd-4e52-bd65-a98c32366948",
       "type": "TAGGED",
       "source_id": "EXP-2023-044",
       "target_id": "topic-никель",
       "properties": {}
     },
     {
-      "id": "e6ef8793-67b7-4e28-911e-cd1a21639201",
+      "id": "b0640bb7-6d0f-46ee-8a90-85666350de0b",
       "type": "DESCRIBES",
       "source_id": "DOC-2023-201",
       "target_id": "EXP-2023-044",
       "properties": {}
     },
     {
-      "id": "8ae1fce8-e57f-47a8-990a-885dc392b4a8",
+      "id": "7b3960cf-ecbd-4667-8384-0cef42f6a83f",
       "type": "DESCRIBES",
       "source_id": "DOC-2023-201",
       "target_id": "EXP-2024-041",
       "properties": {}
     },
     {
-      "id": "887d3373-0e47-4371-8dd7-360cc269158f",
+      "id": "9036a052-68da-44e6-a197-74fa2a057d5a",
       "type": "USES_MATERIAL",
       "source_id": "EXP-2024-041",
       "target_id": "mat-ni-cu-сульфидный-концентрат",
       "properties": {}
     },
     {
-      "id": "70f6a172-f2d2-4077-a390-ec55bab0a0a0",
+      "id": "c81f0fc8-7432-42de-8eb2-e6d52f3f5e75",
       "type": "AT_MODE",
       "source_id": "EXP-2024-041",
       "target_id": "mode-обжиг-750c",
       "properties": {}
     },
     {
-      "id": "c05cafbe-ae91-473b-a824-2e31c907c003",
+      "id": "7ead0e39-681c-4cf6-976f-c80490c240dd",
       "type": "MEASURES",
       "source_id": "EXP-2024-041",
       "target_id": "prop-зольность",
@@ -1440,56 +1440,56 @@
       }
     },
     {
-      "id": "47f607c3-2c8b-4ff4-ab4c-d66294326d2c",
+      "id": "ce0ccc56-64e6-418b-82bc-9729eb15e21b",
       "type": "ON_EQUIPMENT",
       "source_id": "EXP-2024-041",
       "target_id": "eq-печь-обжига-po-2",
       "properties": {}
     },
     {
-      "id": "babe1d3d-925b-407a-a1a6-ef368205106b",
+      "id": "0239b95a-6172-40aa-9d35-119dce74ffc4",
       "type": "CONDUCTED_BY",
       "source_id": "EXP-2024-041",
       "target_id": "team-лаборатория-обогащения",
       "properties": {}
     },
     {
-      "id": "b69e024d-e507-46ed-90f2-9f54b2f03a24",
+      "id": "9873e8a3-8ae6-461c-9979-665c0720e523",
       "type": "CONCLUDES",
       "source_id": "EXP-2024-041",
       "target_id": "concl-EXP-2024-041",
       "properties": {}
     },
     {
-      "id": "25b1be6c-9713-49ed-9c79-b1df44a00c2f",
+      "id": "d0540b07-a7be-43e7-b75b-b6c94f89bcfd",
       "type": "TAGGED",
       "source_id": "EXP-2024-041",
       "target_id": "topic-обжиг",
       "properties": {}
     },
     {
-      "id": "8510058e-735b-4997-92e4-8b049390164e",
+      "id": "1177a4c5-4514-424a-8633-8ab539b33178",
       "type": "TAGGED",
       "source_id": "EXP-2024-041",
       "target_id": "topic-никель",
       "properties": {}
     },
     {
-      "id": "dee270d9-4121-4a8f-ba75-e86c7704f581",
+      "id": "5991b029-9258-4a7c-985a-4abb3a7d29de",
       "type": "USES_MATERIAL",
       "source_id": "EXP-2024-052",
       "target_id": "mat-ni-cu-сплав",
       "properties": {}
     },
     {
-      "id": "f2423b06-4078-425a-a51f-109b1e14abf3",
+      "id": "0da00646-23e6-447a-a8e9-c9ff69bab31a",
       "type": "AT_MODE",
       "source_id": "EXP-2024-052",
       "target_id": "mode-термообработка-600c-2ч",
       "properties": {}
     },
     {
-      "id": "14c43b8e-6b00-46db-8647-fc4d626b9ace",
+      "id": "8e5990e5-a134-4588-b84e-a17aa28594bc",
       "type": "MEASURES",
       "source_id": "EXP-2024-052",
       "target_id": "prop-прочность-на-разрыв",
@@ -1499,70 +1499,70 @@
       }
     },
     {
-      "id": "df105c21-f65f-40d9-939b-85e654299296",
+      "id": "d5f7849b-fe7b-47fe-b386-0dabb75ed560",
       "type": "ON_EQUIPMENT",
       "source_id": "EXP-2024-052",
       "target_id": "eq-универсальная-испытательная-машина-uim-100",
       "properties": {}
     },
     {
-      "id": "27b564cc-3336-42a1-b35a-cbec64f7a114",
+      "id": "5756939a-9c3c-4894-906b-33609d8415a1",
       "type": "CONDUCTED_BY",
       "source_id": "EXP-2024-052",
       "target_id": "team-центр-материаловедения",
       "properties": {}
     },
     {
-      "id": "3545e31a-e527-40df-80a2-1a1ba6fb9f33",
+      "id": "1c69914d-cd31-4f21-bfad-bb52ba2f8ad4",
       "type": "CONCLUDES",
       "source_id": "EXP-2024-052",
       "target_id": "concl-EXP-2024-052",
       "properties": {}
     },
     {
-      "id": "12536de8-9cef-4e9e-8e4c-d47ae7387267",
+      "id": "83ce3977-75dd-4880-b299-228fad89bc2a",
       "type": "TAGGED",
       "source_id": "EXP-2024-052",
       "target_id": "topic-сплавы",
       "properties": {}
     },
     {
-      "id": "668aa7ce-9a31-48c9-af4e-c307cdb60884",
+      "id": "bbb70bc2-6ac8-4dd1-ab29-9a70e1027d01",
       "type": "TAGGED",
       "source_id": "EXP-2024-052",
       "target_id": "topic-механические-свойства",
       "properties": {}
     },
     {
-      "id": "f18d5eec-c8d1-4933-8f2c-f70eebf7c08d",
+      "id": "1864d228-a086-4ae0-9e37-ef11964899e9",
       "type": "DESCRIBES",
       "source_id": "DOC-2024-156",
       "target_id": "EXP-2024-052",
       "properties": {}
     },
     {
-      "id": "0c665184-eb29-419a-adee-44c0cb9ebc4c",
+      "id": "ab23e699-367f-4be1-9515-f7be93e40478",
       "type": "DESCRIBES",
       "source_id": "DOC-2024-156",
       "target_id": "EXP-2024-060",
       "properties": {}
     },
     {
-      "id": "b2ef0270-4848-4d8c-9801-41909f31d2c2",
+      "id": "29ed7e8a-3448-4ab2-b5dc-469e4443c078",
       "type": "USES_MATERIAL",
       "source_id": "EXP-2024-060",
       "target_id": "mat-ni-cu-сплав",
       "properties": {}
     },
     {
-      "id": "54d684ca-914c-49af-bb28-94bc27255e1b",
+      "id": "3d8a5ed8-fc94-48f8-8e0c-5ed119cae913",
       "type": "AT_MODE",
       "source_id": "EXP-2024-060",
       "target_id": "mode-термообработка-500c-2ч",
       "properties": {}
     },
     {
-      "id": "47434942-6ab3-43aa-a81a-ff8a9dac908d",
+      "id": "f2269aec-c22a-400d-a409-e05f64426dc4",
       "type": "MEASURES",
       "source_id": "EXP-2024-060",
       "target_id": "prop-прочность-на-разрыв",
@@ -1572,56 +1572,56 @@
       }
     },
     {
-      "id": "4507dff5-7c50-43b9-ad31-dcad056b3c0d",
+      "id": "6e634c6d-e3b2-4075-8d2a-67c59c8202f1",
       "type": "ON_EQUIPMENT",
       "source_id": "EXP-2024-060",
       "target_id": "eq-универсальная-испытательная-машина-uim-100",
       "properties": {}
     },
     {
-      "id": "88e6421b-9878-4842-837a-a6300ca4ed3c",
+      "id": "cf692caf-677c-4890-b850-3817f307dd50",
       "type": "CONDUCTED_BY",
       "source_id": "EXP-2024-060",
       "target_id": "team-центр-материаловедения",
       "properties": {}
     },
     {
-      "id": "b19977a9-84b4-4e9a-b33e-37529489beb6",
+      "id": "b1f420de-d283-48e0-ac1c-cc0cedc1b0dd",
       "type": "CONCLUDES",
       "source_id": "EXP-2024-060",
       "target_id": "concl-EXP-2024-060",
       "properties": {}
     },
     {
-      "id": "373b2903-5688-434a-9358-04ad7cacee45",
+      "id": "fe427893-0d09-499e-97c9-a16228290412",
       "type": "TAGGED",
       "source_id": "EXP-2024-060",
       "target_id": "topic-сплавы",
       "properties": {}
     },
     {
-      "id": "beff9577-bef7-4f79-9d90-d73f5fc01207",
+      "id": "01137a15-5cde-4360-bb3c-51468e58f284",
       "type": "TAGGED",
       "source_id": "EXP-2024-060",
       "target_id": "topic-механические-свойства",
       "properties": {}
     },
     {
-      "id": "a5cde719-726b-4902-8ed2-38509223ead3",
+      "id": "635b39fd-1504-4139-9427-4eddf5948692",
       "type": "USES_MATERIAL",
       "source_id": "EXP-2024-022",
       "target_id": "mat-ni-cu-сульфидный-концентрат",
       "properties": {}
     },
     {
-      "id": "10e8964d-330b-424a-9f9b-bead73b76f34",
+      "id": "3a06903c-ea98-4a85-b75e-e2b0170c178f",
       "type": "AT_MODE",
       "source_id": "EXP-2024-022",
       "target_id": "mode-выщелачивание-h₂so₄-90c",
       "properties": {}
     },
     {
-      "id": "30e34d55-aa5b-470b-bb8a-284194f70724",
+      "id": "39dbe178-aed9-4608-a13a-bd6a60a489b1",
       "type": "MEASURES",
       "source_id": "EXP-2024-022",
       "target_id": "prop-извлечение-ni",
@@ -1631,63 +1631,63 @@
       }
     },
     {
-      "id": "f9322e07-73c9-4ed0-93b1-470ae3136a75",
+      "id": "fb0194a2-8389-4370-b6c8-b432188682dd",
       "type": "ON_EQUIPMENT",
       "source_id": "EXP-2024-022",
       "target_id": "eq-реактор-rv-12",
       "properties": {}
     },
     {
-      "id": "f77281aa-7129-44ed-a11c-9b5cd61d8eec",
+      "id": "ebf299c8-a92c-48eb-82f6-145a1b9c78eb",
       "type": "CONDUCTED_BY",
       "source_id": "EXP-2024-022",
       "target_id": "team-лаборатория-гидрометаллургии",
       "properties": {}
     },
     {
-      "id": "f43753df-15dd-4680-88fb-4be3f4f57887",
+      "id": "8f7f0103-4873-40c0-81fa-9f4328cd8d0b",
       "type": "CONCLUDES",
       "source_id": "EXP-2024-022",
       "target_id": "concl-EXP-2024-022",
       "properties": {}
     },
     {
-      "id": "c0b186fc-297d-4309-b7e7-c805f1a0425d",
+      "id": "823ab650-df7b-49aa-b8e8-9810d3560e63",
       "type": "TAGGED",
       "source_id": "EXP-2024-022",
       "target_id": "topic-гидрометаллургия",
       "properties": {}
     },
     {
-      "id": "620f0b47-61ee-41df-a476-e576c69a2363",
+      "id": "e8ce0ec3-efd2-4131-8ce5-4e5a22a298af",
       "type": "TAGGED",
       "source_id": "EXP-2024-022",
       "target_id": "topic-никель",
       "properties": {}
     },
     {
-      "id": "5309b365-69e4-4fa5-8ed3-bfa58418c8a4",
+      "id": "8c4e9983-9137-4239-8df9-8662aa00c462",
       "type": "DESCRIBES",
       "source_id": "DOC-2024-078",
       "target_id": "EXP-2024-022",
       "properties": {}
     },
     {
-      "id": "9c2a3973-124b-4b05-ab46-8a68d6ba85cc",
+      "id": "f6ac5402-0f19-44fe-a99d-b4e4ee7a62bd",
       "type": "USES_MATERIAL",
       "source_id": "EXP-2024-035",
       "target_id": "mat-медный-концентрат",
       "properties": {}
     },
     {
-      "id": "cd1171f2-0035-464c-b767-08fa9cf95027",
+      "id": "f63c1221-a127-4cf4-a052-2e5f0ca393ef",
       "type": "AT_MODE",
       "source_id": "EXP-2024-035",
       "target_id": "mode-флотация-ph-105",
       "properties": {}
     },
     {
-      "id": "761df816-3a01-42e4-b232-62bd45ff893a",
+      "id": "6a43d759-eaf1-4af3-8eb4-19c016b379c0",
       "type": "MEASURES",
       "source_id": "EXP-2024-035",
       "target_id": "prop-извлечение-cu",
@@ -1697,56 +1697,56 @@
       }
     },
     {
-      "id": "c3e8b089-a4e8-4c8e-baeb-68b09aa84021",
+      "id": "555e7bc8-3515-4af6-ac54-cecf958ac96c",
       "type": "ON_EQUIPMENT",
       "source_id": "EXP-2024-035",
       "target_id": "eq-флотационная-машина-fml-8",
       "properties": {}
     },
     {
-      "id": "2ca54a08-28e8-434f-b3f9-75623517aa82",
+      "id": "8d1bed61-e7e7-480a-a7dd-28a48199a8d7",
       "type": "CONDUCTED_BY",
       "source_id": "EXP-2024-035",
       "target_id": "team-лаборатория-обогащения",
       "properties": {}
     },
     {
-      "id": "e2ab5d8d-3c50-4939-8561-a36b4cb9ac35",
+      "id": "60e07d01-5694-40b6-872c-743924ddf3e6",
       "type": "CONCLUDES",
       "source_id": "EXP-2024-035",
       "target_id": "concl-EXP-2024-035",
       "properties": {}
     },
     {
-      "id": "ce915b7c-6195-4923-9c1e-3a6f232be5b0",
+      "id": "bbb0da41-6904-423d-b852-02a655c94a75",
       "type": "TAGGED",
       "source_id": "EXP-2024-035",
       "target_id": "topic-флотация",
       "properties": {}
     },
     {
-      "id": "5325fb74-fbf2-477d-88dc-0c632e6e5cab",
+      "id": "8b540591-e01d-461a-8322-6376b5129ceb",
       "type": "TAGGED",
       "source_id": "EXP-2024-035",
       "target_id": "topic-медь",
       "properties": {}
     },
     {
-      "id": "6f682aaa-e994-460d-ab11-36448583833b",
+      "id": "5df3243f-e135-4f10-82a2-46e298b04512",
       "type": "USES_MATERIAL",
       "source_id": "EXP-2024-048",
       "target_id": "mat-анодный-никель",
       "properties": {}
     },
     {
-      "id": "24553ae8-229f-454c-b96d-feac04ca2b0b",
+      "id": "2916758c-6bfd-4612-bef7-c5ed665a519f",
       "type": "AT_MODE",
       "source_id": "EXP-2024-048",
       "target_id": "mode-электролиз-250c",
       "properties": {}
     },
     {
-      "id": "caacd89c-9cad-4318-8c46-6b373e278a93",
+      "id": "18ea451f-8d31-4bae-8232-6c4353a7aa38",
       "type": "MEASURES",
       "source_id": "EXP-2024-048",
       "target_id": "prop-содержание-ni-в-катоде",
@@ -1756,56 +1756,56 @@
       }
     },
     {
-      "id": "5f277a6f-37d5-4a12-a6ed-73fbb2e1836f",
+      "id": "a3b72b06-84c0-4831-8de8-bc8da87a17dd",
       "type": "ON_EQUIPMENT",
       "source_id": "EXP-2024-048",
       "target_id": "eq-электролизёр-el-3",
       "properties": {}
     },
     {
-      "id": "010ba99d-710c-40e4-b250-1e000b48786f",
+      "id": "1184625f-4869-4d55-a92a-d747b9a7c368",
       "type": "CONDUCTED_BY",
       "source_id": "EXP-2024-048",
       "target_id": "team-центр-электрометаллургии",
       "properties": {}
     },
     {
-      "id": "aff76d69-82bd-4a26-8e99-03eacacc03d4",
+      "id": "fb692ce4-55cd-4691-aff5-cbf5b4973ec2",
       "type": "CONCLUDES",
       "source_id": "EXP-2024-048",
       "target_id": "concl-EXP-2024-048",
       "properties": {}
     },
     {
-      "id": "227d8905-d616-4ace-a18f-56b000832fc7",
+      "id": "14718e2d-ea38-448c-8da0-9763b9b67612",
       "type": "TAGGED",
       "source_id": "EXP-2024-048",
       "target_id": "topic-электролиз",
       "properties": {}
     },
     {
-      "id": "74a5518e-a1b1-4ac6-9f8b-99110e6d1c32",
+      "id": "9e527c2e-87c8-4404-a5fb-d045a0e43846",
       "type": "TAGGED",
       "source_id": "EXP-2024-048",
       "target_id": "topic-никель",
       "properties": {}
     },
     {
-      "id": "a21bc49b-b481-474d-a275-3cc8c5dc2fed",
+      "id": "56a7e81d-9e1a-4cc5-a680-5d56526110bc",
       "type": "USES_MATERIAL",
       "source_id": "EXP-2025-003",
       "target_id": "mat-ni-cu-сплав",
       "properties": {}
     },
     {
-      "id": "d7a2593b-afb8-4811-a90c-d52f782595bb",
+      "id": "24d54de3-cb07-4a56-ad94-5f1e7b51f93f",
       "type": "AT_MODE",
       "source_id": "EXP-2025-003",
       "target_id": "mode-испытание-nacl-35-30-сут",
       "properties": {}
     },
     {
-      "id": "7a7f4e29-406c-40a2-9571-a804b94669f3",
+      "id": "c8214f9d-eb90-4e7a-b62a-f908840a5864",
       "type": "MEASURES",
       "source_id": "EXP-2025-003",
       "target_id": "prop-скорость-коррозии",
@@ -1815,63 +1815,63 @@
       }
     },
     {
-      "id": "f241fa05-62cf-4ca3-97f8-9604b1c38983",
+      "id": "74b0613b-ae97-4008-bb72-50396d2144ce",
       "type": "ON_EQUIPMENT",
       "source_id": "EXP-2025-003",
       "target_id": "eq-коррозионная-камера-cc-5",
       "properties": {}
     },
     {
-      "id": "0f5063c0-2fb5-4815-accd-e2be8651cccc",
+      "id": "d525aa04-d225-4474-90bb-6734efc8ddc6",
       "type": "CONDUCTED_BY",
       "source_id": "EXP-2025-003",
       "target_id": "team-центр-материаловедения",
       "properties": {}
     },
     {
-      "id": "fba7b594-d2ba-4211-9c28-d090dbbcaf46",
+      "id": "7a742689-795f-4f7b-8fe2-6efdc4248ab1",
       "type": "CONCLUDES",
       "source_id": "EXP-2025-003",
       "target_id": "concl-EXP-2025-003",
       "properties": {}
     },
     {
-      "id": "dc208cbf-f82a-4b99-9d16-929b861b6680",
+      "id": "0791ff59-9353-4089-832f-964a341fbb99",
       "type": "TAGGED",
       "source_id": "EXP-2025-003",
       "target_id": "topic-коррозия",
       "properties": {}
     },
     {
-      "id": "10531e87-be59-4318-812a-8443915e9ad6",
+      "id": "751523ea-283d-414a-b253-3dbaf7851374",
       "type": "TAGGED",
       "source_id": "EXP-2025-003",
       "target_id": "topic-сплавы",
       "properties": {}
     },
     {
-      "id": "70bcfd38-6876-49eb-a132-600a753c057b",
+      "id": "d7ba6360-3c5d-4d80-961c-fdb6a6f95519",
       "type": "DESCRIBES",
       "source_id": "DOC-2025-014",
       "target_id": "EXP-2025-003",
       "properties": {}
     },
     {
-      "id": "2e8c8000-1ac9-41aa-bb46-6da3502ad5a9",
+      "id": "bfe21770-72db-4da7-bb66-cab661e7e9bf",
       "type": "USES_MATERIAL",
       "source_id": "EXP-2025-011",
       "target_id": "mat-ni-cu-сульфидный-концентрат",
       "properties": {}
     },
     {
-      "id": "fc487aa3-7135-41eb-a3d4-e2d01e085c4a",
+      "id": "9473ed80-16bb-4c61-ad69-e75761be8cfb",
       "type": "AT_MODE",
       "source_id": "EXP-2025-011",
       "target_id": "mode-автоклав-200c-15-мпа",
       "properties": {}
     },
     {
-      "id": "4346bcd6-d643-4afc-bde7-3b7251621bc6",
+      "id": "637b6f3a-756a-48db-a063-bddad425f0ae",
       "type": "MEASURES",
       "source_id": "EXP-2025-011",
       "target_id": "prop-извлечение-ni",
@@ -1881,63 +1881,63 @@
       }
     },
     {
-      "id": "dc715741-1fc8-41e1-a243-28bfc213712d",
+      "id": "695d2e37-1581-4c10-b5ec-21cba64d9ae1",
       "type": "ON_EQUIPMENT",
       "source_id": "EXP-2025-011",
       "target_id": "eq-автоклав-ac-200",
       "properties": {}
     },
     {
-      "id": "f853c20e-62ac-4692-bc62-f2adf40e330d",
+      "id": "ef42adcd-3287-408e-806d-dea2d08d3420",
       "type": "CONDUCTED_BY",
       "source_id": "EXP-2025-011",
       "target_id": "team-лаборатория-гидрометаллургии",
       "properties": {}
     },
     {
-      "id": "9c804a2b-2f34-46d8-b224-473f3a315490",
+      "id": "9b701b4f-6665-43f4-a272-8e7598a3fc8c",
       "type": "CONCLUDES",
       "source_id": "EXP-2025-011",
       "target_id": "concl-EXP-2025-011",
       "properties": {}
     },
     {
-      "id": "95259b06-43b8-4636-b440-77e1d0a724e4",
+      "id": "43859b28-dcc3-411b-8d75-f7d4103d86b0",
       "type": "TAGGED",
       "source_id": "EXP-2025-011",
       "target_id": "topic-гидрометаллургия",
       "properties": {}
     },
     {
-      "id": "10e33505-3326-4409-b1b1-34be4a1dcb40",
+      "id": "f9a6fd96-d3cf-4783-b40c-fcbec373e667",
       "type": "TAGGED",
       "source_id": "EXP-2025-011",
       "target_id": "topic-никель",
       "properties": {}
     },
     {
-      "id": "a346287b-74c5-4ecb-86e9-54434af172d4",
+      "id": "81e929c7-3108-4642-8d00-0a169b7b34c8",
       "type": "DESCRIBES",
       "source_id": "DOC-2025-021",
       "target_id": "EXP-2025-011",
       "properties": {}
     },
     {
-      "id": "22361af6-9b9d-4663-8666-e1a98bbf2f8d",
+      "id": "98c68043-77eb-4000-946d-afabc8bd7d37",
       "type": "USES_MATERIAL",
       "source_id": "EXP-2024-071",
       "target_id": "mat-ni-cu-сульфидный-концентрат",
       "properties": {}
     },
     {
-      "id": "f536864a-946f-49ea-88e8-86a3b32ad20f",
+      "id": "9386e96e-b8db-4ab9-b5c0-97d9acf5cd91",
       "type": "AT_MODE",
       "source_id": "EXP-2024-071",
       "target_id": "mode-обжиг-800c",
       "properties": {}
     },
     {
-      "id": "71678e0e-af5f-4364-a985-4bbdd0c2fc75",
+      "id": "362d2223-e2c6-4381-80e5-c64ded95c28f",
       "type": "MEASURES",
       "source_id": "EXP-2024-071",
       "target_id": "prop-содержание-ni",
@@ -1947,63 +1947,63 @@
       }
     },
     {
-      "id": "db90fd5f-54f7-4c9f-ac23-39f2948c3018",
+      "id": "c41d24df-1459-4baf-9960-7cef1c3baaa0",
       "type": "ON_EQUIPMENT",
       "source_id": "EXP-2024-071",
       "target_id": "eq-рентгеновский-дифрактометр-xrd-700",
       "properties": {}
     },
     {
-      "id": "e0aabb8f-1e6d-4e9e-97c1-40812baa3029",
+      "id": "f7fcb8a6-4a5f-4b83-8235-f6a42d30340f",
       "type": "CONDUCTED_BY",
       "source_id": "EXP-2024-071",
       "target_id": "team-лаборатория-аналитического-контроля",
       "properties": {}
     },
     {
-      "id": "2fbed897-2268-4e8d-9441-36901ca6e31f",
+      "id": "37767eae-6584-4b2a-98db-7c9ac26e8f5d",
       "type": "CONCLUDES",
       "source_id": "EXP-2024-071",
       "target_id": "concl-EXP-2024-071",
       "properties": {}
     },
     {
-      "id": "40963a70-bd92-4e5c-9971-e1c5a7e9dac9",
+      "id": "03910419-446f-468e-a774-c45e34167662",
       "type": "TAGGED",
       "source_id": "EXP-2024-071",
       "target_id": "topic-обжиг",
       "properties": {}
     },
     {
-      "id": "530910f6-18f1-4770-b92d-6aac6bcc9909",
+      "id": "ce009638-0437-4f8b-afd7-9ebc3a8a8a81",
       "type": "TAGGED",
       "source_id": "EXP-2024-071",
       "target_id": "topic-анализ",
       "properties": {}
     },
     {
-      "id": "412d1532-3322-40fb-8875-f1e79d682f76",
+      "id": "f65c438c-d73f-4cad-b670-7cce6e998c51",
       "type": "DESCRIBES",
       "source_id": "DOC-2024-201",
       "target_id": "EXP-2024-071",
       "properties": {}
     },
     {
-      "id": "d1a0f026-ae1c-4343-a312-6aee2e67db65",
+      "id": "72c1f54e-0b03-43f6-bde4-d47c3e4f0c4d",
       "type": "USES_MATERIAL",
       "source_id": "EXP-2024-083",
       "target_id": "mat-вольфрамовый-шлам",
       "properties": {}
     },
     {
-      "id": "e3f564ca-48b7-4bea-9104-9e20db3c2e68",
+      "id": "2e3297b3-1470-42d2-a7cc-b9a0da318296",
       "type": "AT_MODE",
       "source_id": "EXP-2024-083",
       "target_id": "mode-магнитная-сепарация-08-тл",
       "properties": {}
     },
     {
-      "id": "043970a5-0e0e-4f1d-b89a-3119a6e503cb",
+      "id": "dce518fa-ee6f-4a2b-8525-8c06b8eaf78b",
       "type": "MEASURES",
       "source_id": "EXP-2024-083",
       "target_id": "prop-извлечение-w",
@@ -2013,42 +2013,42 @@
       }
     },
     {
-      "id": "e462ba2b-93f5-455e-b2a8-7ea792696dd1",
+      "id": "ec48104f-a186-46f7-9cf5-701fc3c584a5",
       "type": "ON_EQUIPMENT",
       "source_id": "EXP-2024-083",
       "target_id": "eq-магнитный-сепаратор-ms-4",
       "properties": {}
     },
     {
-      "id": "9a053e3e-cee9-4599-a29e-a7cb90f37d8f",
+      "id": "2dea1888-2261-4631-96d9-17d7bce02e02",
       "type": "CONDUCTED_BY",
       "source_id": "EXP-2024-083",
       "target_id": "team-лаборатория-редких-металлов",
       "properties": {}
     },
     {
-      "id": "9465bdf9-d0d4-4c4e-bc54-75a5df91435e",
+      "id": "49091fd6-ffab-4cb2-9737-065bfd256127",
       "type": "CONCLUDES",
       "source_id": "EXP-2024-083",
       "target_id": "concl-EXP-2024-083",
       "properties": {}
     },
     {
-      "id": "4f1b24e9-fa54-4c18-92c4-130fdd35c037",
+      "id": "5241a2a0-b55f-4581-a684-fe0b8b92e430",
       "type": "TAGGED",
       "source_id": "EXP-2024-083",
       "target_id": "topic-сепарация",
       "properties": {}
     },
     {
-      "id": "51dd8e07-ecb0-4d2b-b149-784024c51914",
+      "id": "ce48ea3c-a1bc-4eee-9798-df2cf21f1327",
       "type": "TAGGED",
       "source_id": "EXP-2024-083",
       "target_id": "topic-вольфрам",
       "properties": {}
     },
     {
-      "id": "109980b2-6f0c-4794-aaf4-b89e6b9636ed",
+      "id": "4c396b80-03b7-40fc-88ac-e9b60dd71fbf",
       "type": "DESCRIBES",
       "source_id": "DOC-2024-220",
       "target_id": "EXP-2024-083",

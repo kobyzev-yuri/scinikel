@@ -10,8 +10,10 @@ build/
 .chroma/
 .run/
 data/conversations.db
+data/llm_runtime.json
 data/processed/
 data/vectors/
+data/samples/.cache/
 *.log
 .DS_Store
 .idea/

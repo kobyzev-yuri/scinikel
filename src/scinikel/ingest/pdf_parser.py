@@ -108,7 +108,7 @@ class PDFParser:
         for page_num in range(pages_to_parse):
             text = pdf_reader.pages[page_num].extract_text() or ""
             if text.strip():
-                content_parts.append(text.strip())
+                content_parts.append(f"[стр. {page_num + 1}]\n{text.strip()}")
 
         content = "\n\n".join(content_parts)
         if not content:

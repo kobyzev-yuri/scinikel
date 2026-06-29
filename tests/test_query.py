@@ -68,8 +68,17 @@ def test_electrolysis_material_then_mode_clarification(engine: HybridQueryEngine
 def test_electrolysis_resolved_after_mode_choice(engine: HybridQueryEngine):
     result = engine.execute("Что делали по электролиз 250°C для Ni-Cu сплава?")
     assert not result.needs_clarification
-    assert result.experiments
-    assert any(e["experiment"]["id"] == "EXP-2024-031" for e in result.experiments)
+    assert len(result.experiments) == 1
+    assert result.experiments[0]["experiment"]["id"] == "EXP-2024-031"
+
+
+def test_electrolysis_250_elevated_temp_single_experiment(engine: HybridQueryEngine):
+    result = engine.execute(
+        "Что делали по электролиз 250°C для ni-cu сплава при повышенной температуре"
+    )
+    assert not result.needs_clarification
+    assert len(result.experiments) == 1
+    assert result.experiments[0]["experiment"]["id"] == "EXP-2024-031"
 
 
 def test_compare_electrolysis_temperatures(engine: HybridQueryEngine):
@@ -139,3 +148,146 @@ def test_obzhig_800_ash_query(engine: HybridQueryEngine):
     for edge in result.subgraph["edges"]:
         assert edge["source"] in node_ids
         assert edge["target"] in node_ids
+
+
+def test_giab_document_media_skips_clarification(engine: HybridQueryEngine):
+    q = (
+        "doc-giab-ni-cu-flotation-water: какие графики и таблицы показывают "
+        "влияние ионов жёсткости воды на флотацию?"
+    )
+    parsed = engine.parse_question(q)
+    assert parsed.intent == "document_media"
+    assert parsed.doc_id == "doc-giab-ni-cu-flotation-water"
+
+    result = engine.execute(q)
+    assert not result.needs_clarification
+    assert result.scoped_doc_id == "doc-giab-ni-cu-flotation-water"
+    assert "doc-giab-ni-cu-flotation-water" in result.answer
+
+
+def test_giab_document_media_with_pdf_chunks():
+    from scinikel.ingest.pdf_parser import parse_pdf
+
+    giab = Path(__file__).resolve().parents[1] / "data" / "samples" / "giab-ni-cu-flotation-water.pdf"
+    if not giab.exists():
+        pytest.skip("GIAB sample PDF not present")
+
+    graph = NetworkXGraphStore()
+    seed = Path(__file__).resolve().parents[1] / "data" / "seed"
+    ingest_seed_data(graph, seed)
+    doc_index = DocumentIndex(enable_vector=False)
+    parsed_pdf = parse_pdf(giab, max_pages=20)
+    doc_index.index_text(
+        "doc-giab-ni-cu-flotation-water",
+        parsed_pdf["content"],
+        {"title": "giab-ni-cu-flotation-water", "doc_type": "report"},
+    )
+    engine = HybridQueryEngine(graph, doc_index)
+
+    result = engine.execute(
+        "doc-giab-ni-cu-flotation-water: при какой концентрации кальция в пульпе "
+        "лучшее извлечение никеля?"
+    )
+    assert not result.needs_clarification
+    assert result.scoped_doc_id == "doc-giab-ni-cu-flotation-water"
+    assert result.sources
+    assert result.sources[0]["id"] == "doc-giab-ni-cu-flotation-water"
+
+
+def test_giab_hardness_media_finds_relevant_chunks():
+    from scinikel.ingest.pdf_parser import parse_pdf
+
+    giab = Path(__file__).resolve().parents[1] / "data" / "samples" / "giab-ni-cu-flotation-water.pdf"
+    if not giab.exists():
+        pytest.skip("GIAB sample PDF not present")
+
+    graph = NetworkXGraphStore()
+    ingest_seed_data(graph, Path(__file__).resolve().parents[1] / "data" / "seed")
+    doc_index = DocumentIndex(enable_vector=False)
+    parsed_pdf = parse_pdf(giab, max_pages=20)
+    doc_index.index_text(
+        "doc-giab-ni-cu-flotation-water",
+        parsed_pdf["content"],
+        {"title": "giab-ni-cu-flotation-water", "doc_type": "report"},
+    )
+    engine = HybridQueryEngine(graph, doc_index)
+
+    q = (
+        "doc-giab-ni-cu-flotation-water: какие графики и таблицы показывают "
+        "влияние ионов жёсткости воды на флотацию медно-никелевых руд?"
+    )
+    result = engine.execute(q)
+    chunk_ids = [s.get("chunk_id") for s in result.sources]
+    blob = " ".join(s.get("snippet", "") for s in result.sources).lower()
+    assert any(cid and "c12" in cid for cid in chunk_ids) or "жесткост" in blob
+
+
+def test_format_document_media_answer_readable():
+    from scinikel.agent.structured_answer import format_document_media_answer
+    from scinikel.query.engine import QueryResult
+
+    result = QueryResult(
+        answer="",
+        scoped_doc_id="doc-giab-ni-cu-flotation-water",
+        sources=[
+            {
+                "id": "doc-giab-ni-cu-flotation-water",
+                "chunk_id": "doc-giab-ni-cu-flotation-water#c27",
+                "page_hint": None,
+                "excerpt_type": "chunk",
+                "snippet": "сведены в таб л. 4. классы флотируемости кальция",
+            },
+            {
+                "id": "doc-giab-ni-cu-flotation-water",
+                "chunk_id": "doc-giab-ni-cu-flotation-water#c30",
+                "page_hint": 10,
+                "excerpt_type": "chunk",
+                "snippet": "[стр. 10] кальция в пульпе 27,52 мг/дм3",
+            },
+        ],
+    )
+    text = format_document_media_answer(result)
+    assert "Таблица 4" in text
+    assert "27,52" in text
+    assert "резуль -" not in text
+    assert "EXP-2024" not in text
+
+
+def test_flotation_ph_query_includes_giab_report():
+    from scinikel.ingest.pdf_parser import parse_pdf
+
+    giab = Path(__file__).resolve().parents[1] / "data" / "samples" / "giab-ni-cu-flotation-water.pdf"
+    if not giab.exists():
+        pytest.skip("GIAB sample PDF not present")
+
+    graph = NetworkXGraphStore()
+    seed = Path(__file__).resolve().parents[1] / "data" / "seed"
+    ingest_seed_data(graph, seed)
+    doc_index = DocumentIndex(enable_vector=False)
+    doc_path = seed / "documents.json"
+    if doc_path.exists():
+        import json
+
+        from scinikel.models.entities import Document
+
+        raw = json.loads(doc_path.read_text(encoding="utf-8"))
+        docs = [Document(id=d["id"], name=d["title"], description=d.get("abstract")) for d in raw]
+        texts = {d["id"]: d.get("text", "") for d in raw}
+        doc_index.index_documents(docs, texts)
+
+    parsed_pdf = parse_pdf(giab, max_pages=20)
+    doc_index.index_text(
+        "doc-giab-ni-cu-flotation-water",
+        parsed_pdf["content"],
+        {"title": "giab-ni-cu-flotation-water", "doc_type": "report"},
+    )
+    engine = HybridQueryEngine(graph, doc_index)
+
+    result = engine.execute(
+        "Что делали по флотация pH 10.5 для ni-cu сульфидный концентрат?"
+    )
+    assert not result.needs_clarification
+    source_ids = {s["id"] for s in result.sources}
+    assert "doc-giab-ni-cu-flotation-water" in source_ids
+    giab_src = next(s for s in result.sources if s["id"] == "doc-giab-ni-cu-flotation-water")
+    assert giab_src.get("chunk_id") or giab_src.get("snippet")

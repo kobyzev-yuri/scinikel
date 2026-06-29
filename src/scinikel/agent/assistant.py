@@ -4,8 +4,14 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-from scinikel.query.engine import HybridQueryEngine, QueryResult
+from scinikel.agent.structured_answer import (
+    ensure_table_in_answer,
+    format_document_media_answer,
+    format_structured_answer,
+)
+from scinikel.query.engine import HybridQueryEngine, QueryResult, scoped_document_id
 from scinikel.services.llm import get_llm_client
+from scinikel.services.llm_runtime import should_use_llm
 
 
 @dataclass
@@ -24,22 +30,34 @@ class AgentResponse:
 
 SYSTEM_PROMPT = """Ты — «Научный клубок», эксперт-ассистент исследователя Норникеля.
 Отвечай на русском, языком практика. Каждый тезис опирай на факты из контекста.
+Отвечай сразу по делу — без рассуждений вслух и без скрытых блоков рассуждений.
 Учитывай предыдущие реплики диалога: на уточняющие вопросы («а кто?», «подробнее», «сравни…»)
 отвечай в контексте уже обсуждённой темы.
 Если пользователь соглашается на предложение из твоего предыдущего ответа («да», «давай», «сравни», «свести в таблицу», «что именно улучшает»),
 выполни его сразу по уже известному контексту диалога (материал, режим, сравнение) — не задавай повторных наводящих вопросов.
-Если просят таблицу — оформи markdown-таблицу по уже обсуждённым экспериментам.
+Если просят таблицу — оформи markdown-таблицу с колонками: Эксперимент | Материал | Режим | Результат | Комментарий.
 Если данных недостаточно — скажи прямо и предложи уточнить материал, режим или свойство.
 Если в контексте указано, что запрос неоднозначен и пользователь ещё не выбрал вариант,
 перечисли варианты и попроси уточнить.
-Не выдумывай эксперименты и цифры."""
+Не выдумывай эксперименты и цифры.
+Если во «Источниках» есть фрагмент документа с doc_id, chunk_id или номером страницы — обязательно укажи их в ответе.
+Дополняй ответ графа данными из PDF-отчётов (giab и др.), если они есть в источниках — не проси пользователя прислать документ."""
+
+TABLE_USER_INSTRUCTION = (
+    "\n\nОформи ответ как markdown-таблицу (колонки: Эксперимент | Материал | Режим | Результат | Комментарий) "
+    "по экспериментам из контекста и истории диалога. "
+    "Не проси уточнить материал — он уже известен. Только таблица и краткий итог (1–2 предложения)."
+)
 
 TOOL_CONTEXT_TEMPLATE = """
 ## Данные из графа знаний (по текущему запросу)
 {graph_answer}
 
-## Источники
+## Источники (документы и фрагменты)
 {sources}
+
+## Рисунки (CLIP)
+{images}
 
 ## Связанные сущности
 {related}
@@ -128,20 +146,30 @@ DIALOG_PROCESS_PATTERNS: list[tuple[str, str]] = [
 class ResearchAgent:
     def __init__(self, query_engine: HybridQueryEngine) -> None:
         self.query_engine = query_engine
-        self.llm = get_llm_client()
+
+    @property
+    def llm(self):
+        return get_llm_client()
 
     def chat(self, user_message: str, history: list[ChatMessage] | None = None) -> AgentResponse:
         prior = list(history or [])
-        query_text = self._resolve_query_text(user_message, prior)
-        skip_clarification = self._should_skip_clarification(user_message, prior)
-        query_result = self.query_engine.execute(query_text, allow_clarification=not skip_clarification)
+        doc_scope = scoped_document_id(user_message)
 
-        if query_result.needs_clarification and skip_clarification:
+        if doc_scope:
+            query_text = user_message
+            skip_clarification = True
+            query_result = self.query_engine.execute(query_text, allow_clarification=False)
+        else:
+            query_text = self._resolve_query_text(user_message, prior)
+            skip_clarification = self._should_skip_clarification(user_message, prior)
+            query_result = self.query_engine.execute(query_text, allow_clarification=not skip_clarification)
+
+        if not doc_scope and query_result.needs_clarification and skip_clarification:
             retry_text = self._expand_format_query(user_message, prior) or query_text
             retry = self.query_engine.execute(retry_text, allow_clarification=False)
             if not retry.needs_clarification:
                 query_result = retry
-            elif self._is_format_request(user_message, prior) and self.llm.available:
+            elif self._is_format_request(user_message, prior) and should_use_llm() and self.llm.available:
                 query_result = QueryResult(
                     answer="Сводка по уже обсуждённым экспериментам из диалога.",
                     experiments=[],
@@ -149,24 +177,26 @@ class ResearchAgent:
 
         llm_used = False
         wants_table = self._is_format_request(user_message, prior)
+        if query_result.scoped_doc_id:
+            wants_table = False
+
         if query_result.needs_clarification:
             message = self._clarification_answer(query_result)
+        elif query_result.scoped_doc_id:
+            message = format_document_media_answer(query_result)
+        elif not should_use_llm():
+            message = format_structured_answer(query_result, wants_table=wants_table)
         elif self.llm.available:
             try:
                 message = self._llm_answer(user_message, query_result, prior, wants_table=wants_table)
+                message = ensure_table_in_answer(message, query_result, wants_table=wants_table)
                 llm_used = True
             except Exception:
-                message = self._fallback_answer(query_result)
+                message = format_structured_answer(query_result, wants_table=wants_table)
         else:
-            message = self._fallback_answer(query_result)
+            message = format_structured_answer(query_result, wants_table=wants_table)
 
-        citations = [
-            *[
-                {"type": "experiment", "id": e["experiment"]["id"], "title": e["experiment"]["name"]}
-                for e in query_result.experiments
-            ],
-            *[{"type": "document", **s} for s in query_result.sources],
-        ]
+        citations = self._build_citations(query_result)
 
         return AgentResponse(
             message=message,
@@ -174,6 +204,40 @@ class ResearchAgent:
             citations=citations,
             llm_used=llm_used,
         )
+
+    @staticmethod
+    def _build_citations(query_result: QueryResult) -> list[dict[str, Any]]:
+        citations: list[dict[str, Any]] = []
+        image_citations = [{"type": "image", **image} for image in query_result.images[:6]]
+        doc_citations = [{"type": "document", **source} for source in query_result.sources[:5]]
+
+        if query_result.scoped_doc_id:
+            citations.extend(image_citations)
+            citations.extend(doc_citations)
+            return citations
+
+        for item in query_result.experiments[:6]:
+            exp = item.get("experiment") or {}
+            mats = ", ".join(m["name"] for m in item.get("materials", [])[:2])
+            modes = ", ".join(m["name"] for m in item.get("modes", [])[:2])
+            measurements = item.get("measurements", [])
+            meas = "; ".join(
+                str(m.get("value", "")) for m in measurements[:2] if m.get("value")
+            )
+            snippet_parts = [p for p in (modes, mats, meas) if p]
+            citations.append(
+                {
+                    "type": "experiment",
+                    "id": exp.get("id"),
+                    "title": exp.get("name") or exp.get("id"),
+                    "snippet": " · ".join(snippet_parts) or None,
+                    "modes": modes or None,
+                    "materials": mats or None,
+                }
+            )
+        citations.extend(doc_citations)
+        citations.extend(image_citations)
+        return citations
 
     def _resolve_query_text(self, message: str, history: list[ChatMessage]) -> str:
         if not history:
@@ -284,6 +348,8 @@ class ResearchAgent:
         return None
 
     def _is_format_request(self, message: str, history: list[ChatMessage]) -> bool:
+        if scoped_document_id(message):
+            return False
         if not history:
             return False
         q = message.strip().lower()
@@ -457,13 +523,37 @@ class ResearchAgent:
                 lines.append(f"{idx}. {opt['label']}")
         return "\n".join(lines)
 
+    @staticmethod
+    def _format_source_line(source: dict[str, Any]) -> str:
+        title = source.get("title") or source.get("id") or "документ"
+        doc_id = source.get("id")
+        parts = [f"- {title}"]
+        if doc_id and doc_id != title:
+            parts.append(f"doc_id={doc_id}")
+        if source.get("chunk_id"):
+            parts.append(f"chunk={source['chunk_id']}")
+        if source.get("page_hint"):
+            parts.append(f"стр. {source['page_hint']}")
+        if source.get("excerpt_type"):
+            parts.append(f"({source['excerpt_type']})")
+        snippet = (source.get("snippet") or "")[:240]
+        return " · ".join(parts) + f": {snippet}"
+
+    @staticmethod
+    def _format_image_line(image: dict[str, Any]) -> str:
+        title = image.get("title") or image.get("id") or "рисунок"
+        parts = [f"- {title}"]
+        if image.get("doc_id"):
+            parts.append(f"doc_id={image['doc_id']}")
+        if image.get("page"):
+            parts.append(f"стр. {image['page']}")
+        if image.get("score") is not None:
+            parts.append(f"score={image['score']}")
+        snippet = (image.get("snippet") or "")[:160]
+        return " · ".join(parts) + (f": {snippet}" if snippet else "")
+
     def _fallback_answer(self, result: QueryResult) -> str:
-        parts = [result.answer]
-        if result.gaps:
-            parts.append("\n**Пробелы:** " + ", ".join(f"{g['material']}×{g['mode']}" for g in result.gaps[:5]))
-        if result.sources:
-            parts.append("\n**Документы:** " + ", ".join(s.get("title") or s["id"] for s in result.sources))
-        return "\n".join(parts)
+        return format_structured_answer(result)
 
     def _llm_answer(
         self,
@@ -474,21 +564,22 @@ class ResearchAgent:
         wants_table: bool = False,
     ) -> str:
         sources_text = "\n".join(
-            f"- {s.get('title', s['id'])}: {s.get('snippet', '')[:200]}" for s in result.sources
-        )
+            self._format_source_line(s) for s in result.sources
+        ) or "нет"
+        images_text = "\n".join(
+            self._format_image_line(img) for img in result.images
+        ) or "нет"
         related_text = ", ".join(r.get("name", "") for r in result.related_entities[:10])
         context = TOOL_CONTEXT_TEMPLATE.format(
             graph_answer=result.answer,
-            sources=sources_text or "нет",
+            sources=sources_text,
+            images=images_text,
             related=related_text or "нет",
         )
 
         user_content = f"{question}\n\n{context}"
         if wants_table:
-            user_content += (
-                "\n\nОформи ответ как markdown-таблицу по уже обсуждённым в диалоге "
-                "экспериментам. Не проси уточнить материал — он уже известен из истории."
-            )
+            user_content += TABLE_USER_INSTRUCTION
 
         messages: list[dict[str, str]] = [{"role": "system", "content": SYSTEM_PROMPT}]
         for msg in prior_history[-10:]:

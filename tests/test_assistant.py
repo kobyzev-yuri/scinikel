@@ -20,7 +20,75 @@ def agent() -> ResearchAgent:
     return ResearchAgent(HybridQueryEngine(store, DocumentIndex()))
 
 
-def test_chat_ambiguous_asks_clarification(agent: ResearchAgent):
+def test_document_media_uses_rule_answer_not_experiment_table():
+    from scinikel.ingest.pdf_parser import parse_pdf
+
+    giab = Path(__file__).resolve().parents[1] / "data" / "samples" / "giab-ni-cu-flotation-water.pdf"
+    if not giab.exists():
+        pytest.skip("GIAB sample PDF not present")
+
+    store = NetworkXGraphStore()
+    ingest_seed_data(store, SEED)
+    doc_index = DocumentIndex(enable_vector=False)
+    parsed_pdf = parse_pdf(giab, max_pages=20)
+    doc_index.index_text(
+        "doc-giab-ni-cu-flotation-water",
+        parsed_pdf["content"],
+        {"title": "giab-ni-cu-flotation-water", "doc_type": "report"},
+    )
+    agent = ResearchAgent(HybridQueryEngine(store, doc_index))
+
+    q = (
+        "doc-giab-ni-cu-flotation-water: какие графики и таблицы показывают "
+        "влияние ионов жёсткости воды на флотацию медно-никелевых руд?"
+    )
+    resp = agent.chat(q)
+    assert resp.query_result is not None
+    assert resp.query_result.scoped_doc_id == "doc-giab-ni-cu-flotation-water"
+    assert "EXP-2024-017" not in resp.message
+    assert "Рисунки из PDF" in resp.message or "Таблица 4" in resp.message
+    assert "резуль -" not in resp.message
+    assert not resp.llm_used
+
+
+def test_document_media_with_prior_history_not_llm_table():
+    from scinikel.ingest.pdf_parser import parse_pdf
+
+    giab = Path(__file__).resolve().parents[1] / "data" / "samples" / "giab-ni-cu-flotation-water.pdf"
+    if not giab.exists():
+        pytest.skip("GIAB sample PDF not present")
+
+    store = NetworkXGraphStore()
+    ingest_seed_data(store, SEED)
+    doc_index = DocumentIndex(enable_vector=False)
+    parsed_pdf = parse_pdf(giab, max_pages=20)
+    doc_index.index_text(
+        "doc-giab-ni-cu-flotation-water",
+        parsed_pdf["content"],
+        {"title": "giab-ni-cu-flotation-water", "doc_type": "report"},
+    )
+    agent = ResearchAgent(HybridQueryEngine(store, doc_index))
+
+    q = (
+        "doc-giab-ni-cu-flotation-water: какие графики и таблицы показывают "
+        "влияние ионов жёсткости воды на флотацию медно-никелевых руд?"
+    )
+    history = [
+        ChatMessage(
+            role="user",
+            content="Что делали по флотация pH 10.5 для ni-cu сульфидный концентрат?",
+        ),
+        ChatMessage(
+            role="assistant",
+            content="По Ni-Cu сульфидному концентрату при флотации pH 10.5 извлечение Ni 87.3%.",
+        ),
+    ]
+    resp = agent.chat(q, history=history)
+    assert not resp.llm_used
+    assert "Таблица 4" in resp.message or "27,52" in resp.message
+    assert "резуль -" not in resp.message
+    assert "EXP-2024-001" not in resp.message
+    assert "#c30" in resp.message or "Оптимум кальция" in resp.message
     resp = agent.chat("Что делали по электролизу?")
     assert resp.query_result is not None
     assert resp.query_result.needs_clarification
