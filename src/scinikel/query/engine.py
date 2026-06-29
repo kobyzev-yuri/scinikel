@@ -83,6 +83,23 @@ class HybridQueryEngine:
                 parsed.material = m.group(0).strip()
                 break
 
+        if parsed.intent == "who_did_what":
+            topic_patterns = [
+                r"электролиз\w*",
+                r"флотац\w*",
+                r"обжиг\w*",
+                r"термообработк\w*",
+                r"никел\w*",
+                r"сплав\w*",
+            ]
+            for pat in topic_patterns:
+                m = re.search(pat, q, flags)
+                if m:
+                    parsed.topic = m.group(0).strip()
+                    break
+            if not parsed.topic:
+                parsed.topic = question
+
         return parsed
 
     def execute(self, question: str) -> QueryResult:
@@ -99,6 +116,41 @@ class HybridQueryEngine:
             else:
                 answer = "Явных пробелов по известным комбинациям материал×режим не найдено."
             return QueryResult(answer=answer, gaps=gaps)
+
+        if parsed.intent == "who_did_what":
+            experiments = self.graph.query_who_did_what(topic=parsed.topic)
+            doc_hits = self.doc_index.search(question, limit=3)
+            sources = [
+                {"id": h.id, "title": h.metadata.get("title"), "snippet": h.text[:300]}
+                for h in doc_hits
+            ]
+            if not experiments:
+                answer = (
+                    "Не найдено экспериментов с указанием команды или установки по этой теме."
+                )
+                return QueryResult(answer=answer, sources=sources)
+
+            lines = []
+            related: list[dict] = []
+            for item in experiments:
+                exp = item["experiment"]
+                teams = ", ".join(t["name"] for t in item.get("teams", [])) or "—"
+                equip = ", ".join(e["name"] for e in item.get("equipment", [])) or "—"
+                modes = ", ".join(m["name"] for m in item.get("modes", []))
+                lines.append(
+                    f"**{exp['name']}** ({exp['id']}): команда — {teams}; установка — {equip}; режим — {modes}"
+                )
+                related.extend(item.get("teams", []) + item.get("equipment", []))
+
+            answer = f"Найдено записей: {len(experiments)}\n\n" + "\n\n".join(lines)
+            subgraph = self.graph.subgraph(experiments[0]["experiment"]["id"], depth=2)
+            return QueryResult(
+                answer=answer,
+                experiments=experiments,
+                sources=sources,
+                related_entities=related[:20],
+                subgraph=subgraph,
+            )
 
         experiments = self.graph.query_experiments_by_context(
             material=parsed.material,

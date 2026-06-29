@@ -3,31 +3,73 @@ const form = document.getElementById("chat-form");
 const input = document.getElementById("input");
 const citationsEl = document.getElementById("citations");
 const statsEl = document.getElementById("stats");
+const searchStatusEl = document.getElementById("search-status");
+const llmStatusEl = document.getElementById("llm-status");
 const graphEl = document.getElementById("graph");
+const uploadStatusEl = document.getElementById("upload-status");
 
 let network = null;
 
-function appendMessage(role, text) {
+function escapeHtml(text) {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function renderMarkdown(text) {
+  let html = escapeHtml(text);
+  html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  html = html.replace(/^• (.+)$/gm, "<li>$1</li>");
+  if (html.includes("<li>")) {
+    html = html.replace(/(<li>.*<\/li>)/gs, "<ul>$1</ul>");
+  }
+  html = html.replace(/\n/g, "<br>");
+  return html;
+}
+
+function appendMessage(role, text, meta = "") {
   const div = document.createElement("div");
   div.className = `msg ${role}`;
-  div.textContent = text;
+  if (role === "assistant") {
+    div.innerHTML = renderMarkdown(text);
+    if (meta) {
+      const tag = document.createElement("div");
+      tag.className = "msg-meta";
+      tag.textContent = meta;
+      div.appendChild(tag);
+    }
+  } else {
+    div.textContent = text;
+  }
   messagesEl.appendChild(div);
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-async function loadStats() {
+async function loadStatus() {
   try {
-    const res = await fetch("/api/graph/stats");
-    const data = await res.json();
-    statsEl.textContent = `Граф: ${data.entities} сущностей, ${data.relations} связей`;
+    const [graphRes, statusRes] = await Promise.all([
+      fetch("/api/graph/stats"),
+      fetch("/api/assistant/status"),
+    ]);
+    const graph = await graphRes.json();
+    const status = await statusRes.json();
+    statsEl.textContent = `Граф: ${graph.entities} сущностей, ${graph.relations} связей`;
+    searchStatusEl.textContent = `Поиск: ${status.search_backend}`;
+    searchStatusEl.className = `badge ${status.search_backend === "qdrant+e5" ? "ok" : "warn"}`;
+    llmStatusEl.textContent = status.llm_enabled
+      ? `LLM: ${status.llm_model}`
+      : "LLM: rule-based";
+    llmStatusEl.className = `badge ${status.llm_enabled ? "ok" : "warn"}`;
   } catch (_) {
-    statsEl.textContent = "";
+    statsEl.textContent = "Сервер недоступен";
   }
 }
 
 function renderGraph(subgraph) {
   if (!subgraph || !subgraph.nodes?.length) {
-    graphEl.innerHTML = "<p style='padding:1rem;color:#8b9cb3;font-size:0.85rem'>Задайте вопрос — здесь появится фрагмент графа</p>";
+    graphEl.innerHTML =
+      "<p class='graph-placeholder'>Задайте вопрос — здесь появится фрагмент графа</p>";
     return;
   }
 
@@ -101,14 +143,39 @@ async function sendMessage(text) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: text }),
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     loading.remove();
-    appendMessage("assistant", data.message);
+    const meta = data.llm_used ? "ответ сформулирован LLM" : "ответ из графа (без LLM)";
+    appendMessage("assistant", data.message, meta);
     renderCitations(data.citations);
     renderGraph(data.subgraph);
-  } catch (err) {
+  } catch (_) {
     loading.remove();
-    appendMessage("assistant", "Ошибка запроса. Проверьте, что сервер запущен.");
+    appendMessage("assistant", "Ошибка запроса. Проверьте, что сервер запущен и config.env настроен.");
+  }
+}
+
+async function uploadFile(formEl, endpoint) {
+  const fileInput = formEl.querySelector('input[type="file"]');
+  if (!fileInput.files?.length) {
+    uploadStatusEl.textContent = "Выберите файл";
+    return;
+  }
+  uploadStatusEl.textContent = "Загрузка…";
+  const fd = new FormData();
+  fd.append("file", fileInput.files[0]);
+  try {
+    const res = await fetch(endpoint, { method: "POST", body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "ошибка");
+    uploadStatusEl.textContent = endpoint.includes("xlsx")
+      ? `Загружено экспериментов: ${data.experiments_loaded ?? "?"}`
+      : "PDF обработан и добавлен в граф";
+    fileInput.value = "";
+    loadStatus();
+  } catch (err) {
+    uploadStatusEl.textContent = `Ошибка: ${err.message}`;
   }
 }
 
@@ -128,4 +195,14 @@ document.querySelectorAll(".example").forEach((btn) => {
   });
 });
 
-loadStats();
+document.getElementById("upload-xlsx").addEventListener("submit", (e) => {
+  e.preventDefault();
+  uploadFile(e.target, "/api/ingest/xlsx");
+});
+
+document.getElementById("upload-pdf").addEventListener("submit", (e) => {
+  e.preventDefault();
+  uploadFile(e.target, "/api/ingest/pdf");
+});
+
+loadStatus();

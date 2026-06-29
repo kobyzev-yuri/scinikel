@@ -86,6 +86,7 @@ class ChatResponse(BaseModel):
     experiments: list[dict[str, Any]]
     subgraph: dict[str, Any] | None = None
     gaps: list[dict[str, str]] = Field(default_factory=list)
+    llm_used: bool = False
 
 
 class CurateRequest(BaseModel):
@@ -116,7 +117,20 @@ async def chat(req: ChatRequest):
         experiments=qr.experiments if qr else [],
         subgraph=qr.subgraph if qr else None,
         gaps=qr.gaps if qr else [],
+        llm_used=resp.llm_used,
     )
+
+
+@app.get("/api/assistant/status")
+async def assistant_status():
+    idx = _doc_index or DocumentIndex()
+    return {
+        "llm_enabled": settings.llm_enabled,
+        "llm_provider": settings.llm_provider,
+        "llm_model": settings.active_llm_label,
+        "search_backend": idx.backend,
+        "graph_entities": _graph.stats()["entities"] if _graph else 0,
+    }
 
 
 @app.get("/api/search/status")

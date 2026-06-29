@@ -43,6 +43,19 @@ def test_gaps_query(engine: HybridQueryEngine):
     assert result.gaps is not None
 
 
+def test_who_did_what_query(engine: HybridQueryEngine):
+    result = engine.execute("Кто занимался электролизом и на какой установке?")
+    assert result.experiments
+    assert any(item.get("teams") for item in result.experiments)
+
+
+def test_config_env_llm_enabled():
+    from scinikel.config import CONFIG_ENV, settings
+
+    if CONFIG_ENV.exists():
+        assert settings.llm_enabled or settings.llm_provider == "ollama"
+
+
 def test_graph_stats_after_seed():
     graph = NetworkXGraphStore()
     seed = Path(__file__).resolve().parents[1] / "data" / "seed"

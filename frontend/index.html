@@ -12,25 +12,42 @@
     <header>
       <h1>🧶 Научный клубок</h1>
       <p class="tagline">Диалог поверх графа знаний — сплавы, режимы, свойства, эксперименты</p>
-      <div id="stats" class="stats"></div>
+      <div class="status-bar">
+        <span id="stats" class="stats"></span>
+        <span id="search-status" class="badge"></span>
+        <span id="llm-status" class="badge"></span>
+      </div>
     </header>
 
     <main>
       <section class="chat-panel">
         <div id="messages" class="messages"></div>
         <form id="chat-form" class="chat-form">
-          <textarea id="input" rows="2" placeholder="Например: что делали по Ni-Cu сплаву при электролизе 250°C и какой эффект на содержание Ni?"></textarea>
+          <textarea id="input" rows="2" placeholder="Например: что делали по Ni-Cu сплаву при электролизе 250°C?"></textarea>
           <button type="submit">Спросить</button>
         </form>
         <div class="examples">
           <span>Примеры:</span>
           <button type="button" class="example" data-q="Что делали по Ni-Cu концентрату при флотации pH 10.5 и какой эффект на извлечение Ni?">флотация Ni</button>
           <button type="button" class="example" data-q="Кто занимался электролизом и на какой установке?">кто / установка</button>
-          <button type="button" class="example" data-q="Какие комбинации материал×режим ещё не исследованы?">пробелы</button>
+          <button type="button" class="example btn-gaps" data-q="Какие комбинации материал×режим ещё не исследованы?">пробелы в данных</button>
         </div>
       </section>
 
       <aside class="side-panel">
+        <h2>Загрузка данных</h2>
+        <form id="upload-xlsx" class="upload-form">
+          <label>XLSX каталог</label>
+          <input type="file" name="file" accept=".xlsx,.xls" />
+          <button type="submit">Загрузить</button>
+        </form>
+        <form id="upload-pdf" class="upload-form">
+          <label>PDF отчёт</label>
+          <input type="file" name="file" accept=".pdf" />
+          <button type="submit">Загрузить</button>
+        </form>
+        <p id="upload-status" class="upload-status"></p>
+
         <h2>Граф связей</h2>
         <div id="graph"></div>
         <h2>Источники</h2>

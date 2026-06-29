@@ -21,8 +21,17 @@ body {
 .layout { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
 
 header h1 { margin: 0 0 0.25rem; font-size: 1.75rem; }
-.tagline { color: var(--muted); margin: 0 0 1rem; }
+.tagline { color: var(--muted); margin: 0 0 0.75rem; }
+.status-bar { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; }
 .stats { font-size: 0.85rem; color: var(--accent); }
+.badge {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.badge.ok { color: var(--accent); border-color: var(--accent); }
+.badge.warn { color: var(--muted); }
 
 main {
   display: grid;
@@ -58,8 +67,11 @@ main {
   white-space: pre-wrap;
 }
 
-.msg.user { background: #243044; align-self: flex-end; max-width: 90%; }
-.msg.assistant { background: #1e2d28; border-left: 3px solid var(--accent); }
+.msg.user { background: #243044; align-self: flex-end; max-width: 90%; white-space: pre-wrap; }
+.msg.assistant { background: #1e2d28; border-left: 3px solid var(--accent); white-space: normal; }
+.msg.assistant strong { color: #fff; }
+.msg-meta { margin-top: 0.5rem; font-size: 0.75rem; color: var(--muted); }
+.msg.assistant ul { margin: 0.5rem 0 0 1.2rem; padding: 0; }
 
 .chat-form { display: flex; gap: 0.5rem; }
 .chat-form textarea {
@@ -116,3 +128,21 @@ button:hover { background: var(--accent-hover); }
 #citations li { padding: 0.35rem 0; border-bottom: 1px solid var(--border); }
 
 .loading { opacity: 0.6; font-style: italic; }
+
+.upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+}
+.upload-form label { color: var(--muted); }
+.upload-form input[type="file"] { font-size: 0.8rem; color: var(--muted); }
+.upload-form button {
+  align-self: flex-start;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+}
+.upload-status { font-size: 0.8rem; color: var(--accent); min-height: 1.2rem; margin-bottom: 1rem; }
+.graph-placeholder { padding: 1rem; color: var(--muted); font-size: 0.85rem; }
+.btn-gaps { border-color: var(--accent) !important; color: var(--accent) !important; }

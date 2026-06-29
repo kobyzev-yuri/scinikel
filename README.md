@@ -60,15 +60,14 @@ scinikel
 
 Откройте http://localhost:8000
 
-### LLM (опционально)
+### LLM через config.env
 
 ```bash
-cp .env.example .env
-# OPENAI_API_KEY=...  — для «живых» формулировок ответа
-pip install -e ".[llm]"
+cp config.env.example config.env
+# заполните OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL
 ```
 
-Без ключа ассистент работает в rule-based режиме — данные из графа всё равно возвращаются.
+Файл `config.env` в корне проекта (не коммитится). Поддерживаются OpenAI/ProxyAPI и Ollama (`LLM_PROVIDER=ollama`).
 
 ## Примеры вопросов
 

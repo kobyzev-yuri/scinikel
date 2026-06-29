@@ -171,6 +171,21 @@ class NetworkXGraphStore(GraphStore):
 
         return matched
 
+    def query_who_did_what(self, topic: str | None = None) -> list[dict[str, Any]]:
+        """Кто занимался темой и на какой установке."""
+        experiments = self.find_entities(entity_type=EntityType.EXPERIMENT, limit=500)
+        matched: list[dict[str, Any]] = []
+
+        for exp in experiments:
+            ctx = self._experiment_context(exp.id)
+            if not ctx.get("teams") and not ctx.get("equipment"):
+                continue
+            if topic and not _topic_matches(topic, exp, ctx):
+                continue
+            matched.append({"experiment": exp.model_dump(), **ctx})
+
+        return matched
+
     def _experiment_context(self, experiment_id: str) -> dict[str, Any]:
         ctx: dict[str, Any] = {
             "materials": [],
@@ -341,6 +356,19 @@ def _fuzzy_match(needle: str, haystack: list[dict[str, Any]]) -> bool:
 
 def _fuzzy_match_any(needles: list[str], names: list[str]) -> bool:
     return any(_fuzzy_match(needle, [{"name": name} for name in names]) for needle in needles)
+
+
+def _topic_matches(topic: str, exp: Entity, ctx: dict[str, Any]) -> bool:
+    haystack = " ".join(
+        [
+            exp.name,
+            exp.description or "",
+            *[m.get("name", "") for m in ctx.get("materials", [])],
+            *[m.get("name", "") for m in ctx.get("modes", [])],
+            *[t.get("name", "") for t in ctx.get("topics", [])],
+        ]
+    )
+    return _fuzzy_match(topic, [{"name": haystack}])
 
 
 def new_relation(

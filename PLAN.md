@@ -55,18 +55,18 @@ Ingest: PDF/XLSX/Curate → CuratorAgent → graph_materializer → граф + Q
 - [ ] **Получить данные организаторов** — каталог эксперimentов (XLSX), PDF-отчёты, справочники
 - [ ] Загрузить: `POST /api/ingest/xlsx`, `POST /api/ingest/pdf`
 - [ ] Подогнать `COLUMN_ALIASES` в `xlsx_parser.py` под их формат
-- [ ] **Починить intent `who_did_what`** — сейчас парсится, но не обрабатывается в `query/engine.py`
+- [x] **Починить intent `who_did_what`**
 - [ ] **Sample `data/seed/experiments.xlsx`** + e2e тест
 - [ ] Прогнать demo-сценарий на чистой машине (`docker compose up`)
 
 ### 🟡 День 2 — качество + UI (лёгкий, без Streamlit)
 
-- [ ] UI: кнопка «Пробелы в данных»
-- [ ] UI: статус поиска (`/api/search/status` — qdrant+e5 / keyword)
-- [ ] UI: форма загрузки XLSX/PDF (`fetch` → `/api/ingest/*`)
-- [ ] UI: markdown в ответах чата (списки, жирный)
+- [x] UI: кнопка «Пробелы в данных»
+- [x] UI: статус поиска (`/api/search/status` — qdrant+e5 / keyword)
+- [x] UI: форма загрузки XLSX/PDF (`fetch` → `/api/ingest/*`)
+- [x] UI: markdown в ответах чата (списки, жирный)
 - [ ] **Hybrid search** — graph + vector вместе, metadata boost (из 3dtoday)
-- [ ] **Ollama в ResearchAgent** — через `services/llm.py` (как в Curator)
+- [x] **Ollama/OpenAI в ResearchAgent** — через `services/llm.py` + `config.env`
 - [ ] **pdfplumber** — таблицы из PDF-отчётов
 
 ### 🟢 День 3 — если успеем
