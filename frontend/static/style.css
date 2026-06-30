@@ -125,12 +125,20 @@ main {
 }
 .msg.assistant a.msg-link:hover { color: var(--accent-hover); }
 
-.msg-media-gallery {
-  margin-top: 0.85rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+/* —— Shared source cards (чат + «Источники») —— */
+.source-card,
+.citation-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  background: rgba(255, 255, 255, 0.02);
+  font-size: 0.82rem;
 }
 
+.source-card--image,
+.citation-card--image { border-left: 3px solid #e8b84a; }
+
+.source-section-title,
 .msg-media-gallery-title {
   margin: 0 0 0.5rem;
   font-size: 0.78rem;
@@ -139,18 +147,27 @@ main {
   letter-spacing: 0.04em;
 }
 
+.source-media-gallery,
+.msg-media-gallery {
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.source-media-grid,
 .msg-media-gallery-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
   gap: 0.55rem;
 }
 
-.msg-media-card,
+.source-media-btn,
 .msg-media-inline {
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 0.35rem;
+  width: 100%;
   padding: 0.35rem;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -161,7 +178,7 @@ main {
   cursor: zoom-in;
 }
 
-.msg-media-card:hover,
+.source-media-btn:hover,
 .msg-media-inline:hover {
   border-color: var(--accent);
   background: rgba(76, 175, 130, 0.08);
@@ -174,21 +191,52 @@ main {
   vertical-align: top;
 }
 
-.msg-media-card-img,
-.msg-media-thumb {
+.source-media-thumb,
+.msg-media-thumb,
+.citation-thumb {
   display: block;
   width: 100%;
-  max-height: 160px;
+  max-height: 180px;
   object-fit: contain;
-  border-radius: 4px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
   background: #fff;
 }
 
-.msg-media-card-cap,
+.source-media-cap,
 .msg-media-cap {
   font-size: 0.72rem;
   line-height: 1.3;
   color: var(--muted);
+}
+
+.source-image-block {
+  margin-top: 0.35rem;
+}
+
+.source-image-annotation {
+  margin: 0.35rem 0 0;
+  font-size: 0.76rem;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+.source-keypoints,
+.citation-keypoints {
+  margin: 0.35rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.72rem;
+  color: var(--text);
+}
+
+.source-keypoints li,
+.citation-keypoints li {
+  margin: 0.15rem 0;
+}
+
+.source-snippet--vision,
+.citation-snippet--vision {
+  border-left: 2px solid #e8b84a;
 }
 
 .image-modal {
@@ -700,17 +748,10 @@ button:hover { background: var(--accent-hover); }
   gap: 0.5rem;
 }
 
-.citation-card {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.55rem 0.65rem;
-  background: rgba(255, 255, 255, 0.02);
-  font-size: 0.82rem;
-}
-
-.citation-card--experiment { border-left: 3px solid #4a9eff; }
-.citation-card--document { border-left: 3px solid #6bcf7f; }
-.citation-card--image { border-left: 3px solid #e8b84a; }
+.citation-card--experiment,
+.source-card--experiment { border-left: 3px solid #4a9eff; }
+.citation-card--document,
+.source-card--document { border-left: 3px solid #6bcf7f; }
 
 .citation-head {
   display: flex;
@@ -720,6 +761,7 @@ button:hover { background: var(--accent-hover); }
   margin-bottom: 0.25rem;
 }
 
+.source-badge,
 .citation-badge {
   display: inline-block;
   font-size: 0.68rem;
@@ -732,6 +774,7 @@ button:hover { background: var(--accent-hover); }
   flex-shrink: 0;
 }
 
+.source-card-title,
 .citation-title {
   font-weight: 600;
   color: var(--text);
@@ -745,6 +788,7 @@ button:hover { background: var(--accent-hover); }
   margin: 0.15rem 0 0.35rem;
 }
 
+.source-snippet,
 .citation-snippet {
   margin: 0;
   padding: 0.4rem 0.5rem;
@@ -755,57 +799,6 @@ button:hover { background: var(--accent-hover); }
   line-height: 1.35;
   white-space: pre-wrap;
   word-break: break-word;
-}
-
-.citation-snippet--vision {
-  border-left: 2px solid #e8b84a;
-}
-
-.citation-figure {
-  margin: 0.35rem 0 0;
-}
-
-.citation-figure-link {
-  display: inline-block;
-  line-height: 0;
-  border-radius: 6px;
-  overflow: hidden;
-  padding: 0;
-  border: none;
-  background: transparent;
-  cursor: zoom-in;
-}
-
-.citation-figure-link:hover .citation-thumb {
-  border-color: var(--accent);
-}
-
-.citation-thumb {
-  display: block;
-  max-width: 100%;
-  max-height: 220px;
-  width: auto;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: #fff;
-  object-fit: contain;
-}
-
-.citation-figure-cap {
-  margin-top: 0.25rem;
-  font-size: 0.72rem;
-  color: var(--muted);
-}
-
-.citation-keypoints {
-  margin: 0.35rem 0 0;
-  padding-left: 1.1rem;
-  font-size: 0.72rem;
-  color: var(--text);
-}
-
-.citation-keypoints li {
-  margin: 0.15rem 0;
 }
 
 .citation-actions {

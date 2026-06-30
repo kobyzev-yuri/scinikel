@@ -501,25 +501,68 @@ function imageCitationsFrom(citations) {
   return (citations || []).filter((c) => c.type === "image" && normalizeMediaUrl(c.image_url));
 }
 
-function buildMediaCard(c, slides, index) {
+function mediaCaption(c) {
+  const page = c.page ? ` · стр. ${c.page}` : "";
+  return `${c.title || c.id || "Рисунок"}${page}`;
+}
+
+function buildSourceImageBlock(
+  c,
+  slides,
+  index,
+  { showAnnotation = true, showKeyPoints = true, showCaption = true } = {}
+) {
   const url = normalizeMediaUrl(c.image_url);
-  const card = document.createElement("button");
-  card.type = "button";
-  card.className = "msg-media-card";
-  card.dataset.mediaUrl = url;
+  const block = document.createElement("div");
+  block.className = "source-image-block";
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "source-media-btn";
+  btn.dataset.mediaUrl = url;
   const img = document.createElement("img");
-  img.className = "msg-media-card-img";
+  img.className = "source-media-thumb";
   img.src = url;
   img.alt = c.title || c.id || "рисунок";
   img.loading = "lazy";
   const cap = document.createElement("span");
-  cap.className = "msg-media-card-cap";
-  const page = c.page ? ` · стр. ${c.page}` : "";
-  cap.textContent = `${c.title || c.id || "Рисунок"}${page}`;
-  card.appendChild(img);
-  card.appendChild(cap);
+  cap.className = "source-media-cap";
+  cap.textContent = mediaCaption(c);
+  btn.appendChild(img);
+  if (showCaption) {
+    btn.appendChild(cap);
+  }
   const note = c.librarian_annotation || c.snippet || "";
-  card.addEventListener("click", () => openImageLightbox(url, cap.textContent, note, slides, index));
+  const caption = cap.textContent || mediaCaption(c);
+  btn.addEventListener("click", () => openImageLightbox(url, caption, note, slides, index));
+  block.appendChild(btn);
+
+  const ann = (c.librarian_annotation || c.snippet || "").trim();
+  if (showAnnotation && ann && ann !== (c.title || "")) {
+    const annEl = document.createElement("p");
+    annEl.className = "source-image-annotation";
+    annEl.textContent = ann;
+    block.appendChild(annEl);
+  }
+
+  if (showKeyPoints && c.key_points?.length) {
+    const ul = document.createElement("ul");
+    ul.className = "source-keypoints";
+    for (const kp of c.key_points) {
+      const li = document.createElement("li");
+      li.textContent = kp;
+      ul.appendChild(li);
+    }
+    block.appendChild(ul);
+  }
+
+  return block;
+}
+
+function buildMediaCard(c, slides, index) {
+  const card = document.createElement("article");
+  card.className = "source-card source-card--image";
+  card.appendChild(buildSourceImageBlock(c, slides, index, { showAnnotation: false, showKeyPoints: false }));
   return card;
 }
 
@@ -532,7 +575,7 @@ function wireMediaInElement(root, slides = null) {
     el.addEventListener("click", (e) => {
       e.preventDefault();
       const url = el.dataset.mediaUrl;
-      const caption = el.dataset.mediaCaption || el.querySelector(".msg-media-cap")?.textContent || "";
+      const caption = el.dataset.mediaCaption || el.querySelector(".source-media-cap, .msg-media-cap")?.textContent || "";
       const note = el.dataset.mediaNote || "";
       openImageLightbox(url, caption, note, slideList.length ? slideList : null);
     });
@@ -568,13 +611,13 @@ function appendMediaGallery(container, citations) {
   if (!images.length) return;
   const slides = slidesFromCitations(citations);
   const gallery = document.createElement("div");
-  gallery.className = "msg-media-gallery";
+  gallery.className = "source-media-gallery msg-media-gallery";
   const title = document.createElement("p");
-  title.className = "msg-media-gallery-title";
+  title.className = "source-section-title msg-media-gallery-title";
   title.textContent = "Рисунки из документа";
   gallery.appendChild(title);
   const grid = document.createElement("div");
-  grid.className = "msg-media-gallery-grid";
+  grid.className = "source-media-grid msg-media-gallery-grid";
   images.forEach((c, index) => {
     grid.appendChild(buildMediaCard(c, slides, index));
   });
@@ -1182,9 +1225,9 @@ function renderTextBlock(text) {
     if (url.startsWith("/api/media/images/")) {
       const cap = label.replace(/^(открыть\s+)?рисунок$/i, "Рисунок").trim() || "Рисунок";
       return (
-        `<button type="button" class="msg-media-inline" data-media-url="${url}" data-media-caption="${cap}">` +
-        `<img class="msg-media-thumb" src="${url}" alt="${cap}" loading="lazy">` +
-        `<span class="msg-media-cap">${cap}</span></button>`
+        `<button type="button" class="source-media-btn msg-media-inline" data-media-url="${url}" data-media-caption="${cap}">` +
+        `<img class="source-media-thumb msg-media-thumb" src="${url}" alt="${cap}" loading="lazy">` +
+        `<span class="source-media-cap msg-media-cap">${cap}</span></button>`
       );
     }
     if (url.startsWith("/api/")) {
@@ -1454,16 +1497,16 @@ function renderCitations(citations) {
 
   for (const c of citations) {
     const card = document.createElement("article");
-    card.className = `citation-card citation-card--${c.type || "document"}`;
+    card.className = `source-card citation-card citation-card--${c.type || "document"}`;
     card.setAttribute("role", "listitem");
 
     const head = document.createElement("div");
     head.className = "citation-head";
     const badge = document.createElement("span");
-    badge.className = "citation-badge";
+    badge.className = "source-badge citation-badge";
     badge.textContent = CITATION_LABELS[c.type] || c.type || "Источник";
     const title = document.createElement("p");
-    title.className = "citation-title";
+    title.className = "source-card-title citation-title";
     title.textContent = c.title || c.id || "—";
     head.appendChild(badge);
     head.appendChild(title);
@@ -1479,50 +1522,21 @@ function renderCitations(citations) {
 
     if (c.snippet && c.type !== "image") {
       const snippet = document.createElement("blockquote");
-      snippet.className = `citation-snippet${c.excerpt_type === "vision" ? " citation-snippet--vision" : ""}`;
+      snippet.className = `source-snippet citation-snippet${c.excerpt_type === "vision" ? " citation-snippet--vision source-snippet--vision" : ""}`;
       snippet.textContent = c.snippet;
       card.appendChild(snippet);
     }
 
     if (c.type === "image" && c.image_url) {
       const mediaUrl = normalizeMediaUrl(c.image_url);
-      const figure = document.createElement("figure");
-      figure.className = "citation-figure";
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "citation-figure-link";
-      btn.dataset.mediaUrl = mediaUrl;
-      const img = document.createElement("img");
-      img.className = "citation-thumb";
-      img.src = mediaUrl;
-      img.alt = c.title || c.id || "рисунок";
-      img.loading = "lazy";
-      btn.appendChild(img);
-      const note = c.librarian_annotation || c.snippet || "";
       const slideIndex = imageSlides.findIndex((s) => s.url === mediaUrl);
-      const caption = `${c.title || c.id || "Рисунок"}${c.page ? ` · стр. ${c.page}` : ""}`;
-      btn.addEventListener("click", () =>
-        openImageLightbox(mediaUrl, caption, note, imageSlides, slideIndex >= 0 ? slideIndex : 0)
+      card.appendChild(
+        buildSourceImageBlock(c, imageSlides, slideIndex >= 0 ? slideIndex : 0, {
+          showAnnotation: true,
+          showKeyPoints: true,
+          showCaption: false,
+        })
       );
-      figure.appendChild(btn);
-      const capText = c.librarian_annotation || c.snippet;
-      if (capText && capText !== c.title) {
-        const cap = document.createElement("figcaption");
-        cap.className = "citation-figure-cap";
-        cap.textContent = capText;
-        figure.appendChild(cap);
-      }
-      card.appendChild(figure);
-      if (c.key_points?.length) {
-        const ul = document.createElement("ul");
-        ul.className = "citation-keypoints";
-        for (const kp of c.key_points) {
-          const li = document.createElement("li");
-          li.textContent = kp;
-          ul.appendChild(li);
-        }
-        card.appendChild(ul);
-      }
     }
 
     const actions = document.createElement("div");
