@@ -218,6 +218,19 @@ main {
   margin-bottom: 0.65rem;
 }
 
+.image-modal-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.image-modal-counter {
+  font-size: 0.8rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
 .image-modal-caption {
   margin: 0;
   font-size: 0.95rem;
@@ -225,11 +238,36 @@ main {
 }
 
 .image-modal-body {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
   overflow: auto;
   text-align: center;
 }
 
+.image-modal-nav {
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--text);
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.image-modal-nav:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .image-modal-img {
+  flex: 1;
+  min-width: 0;
   max-width: 100%;
   max-height: min(78vh, 820px);
   width: auto;
@@ -245,6 +283,32 @@ main {
   line-height: 1.45;
   color: var(--muted);
   text-align: left;
+}
+
+.msg-sources-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-top: 0.65rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 8px;
+  border: 1px dashed rgba(76, 175, 130, 0.35);
+  background: rgba(76, 175, 130, 0.06);
+}
+
+.msg-sources-hint-text {
+  margin: 0;
+  flex: 1;
+  min-width: 12rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.msg-sources-hint-btn {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.78rem;
 }
 
 .msg-meta { margin-top: 0.5rem; font-size: 0.75rem; color: var(--muted); }

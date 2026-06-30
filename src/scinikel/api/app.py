@@ -40,6 +40,7 @@ from scinikel.storage.conversations import (
     conversation_payload,
     create_conversation,
     delete_conversation,
+    encode_assistant_meta,
     get_messages,
     init_db,
     list_conversations,
@@ -239,11 +240,16 @@ async def chat(req: ChatRequest):
     turn = len(history) // 2 + 1
 
     meta = "llm" if resp.llm_used else "graph"
+    exp_id: str | None = None
     if qr and qr.experiments:
         exp_id = qr.experiments[0]["experiment"]["id"]
-        meta = f"{meta}:{exp_id}"
+    assistant_meta = encode_assistant_meta(
+        llm_used=resp.llm_used,
+        experiment_id=exp_id,
+        citations=resp.citations,
+    )
     add_message(conv_id, "user", req.message, title_hint=req.message)
-    add_message(conv_id, "assistant", resp.message, meta=meta)
+    add_message(conv_id, "assistant", resp.message, meta=assistant_meta)
 
     return ChatResponse(
         message=resp.message,

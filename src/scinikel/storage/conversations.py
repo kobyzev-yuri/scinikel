@@ -1,5 +1,6 @@
 """SQLite-хранилище диалогов."""
 
+import json
 import sqlite3
 import uuid
 from dataclasses import dataclass
@@ -10,6 +11,24 @@ from typing import Any
 from scinikel.config import DATA_DIR
 
 DB_PATH = DATA_DIR / "conversations.db"
+
+_CITATION_KEYS = (
+    "type",
+    "id",
+    "title",
+    "image_url",
+    "page",
+    "snippet",
+    "librarian_annotation",
+    "key_points",
+    "doc_id",
+    "doc_title",
+    "score",
+    "chunk_id",
+    "excerpt_type",
+    "figure_type",
+    "media_label",
+)
 
 
 @dataclass
@@ -64,6 +83,58 @@ def init_db() -> None:
 
 def _now() -> str:
     return datetime.now(UTC).isoformat()
+
+
+def slim_citations(citations: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
+    """Компактные citations для meta assistant-сообщения (галерея при reload)."""
+    if not citations:
+        return []
+    slim: list[dict[str, Any]] = []
+    for item in citations[:12]:
+        row = {k: item[k] for k in _CITATION_KEYS if k in item and item[k] is not None}
+        if row:
+            slim.append(row)
+    return slim
+
+
+def encode_assistant_meta(
+    *,
+    llm_used: bool,
+    experiment_id: str | None = None,
+    citations: list[dict[str, Any]] | None = None,
+) -> str:
+    """JSON meta для assistant: kind, exp_id, citations (обратносовместимо со строкой llm:EXP)."""
+    payload: dict[str, Any] = {
+        "v": 1,
+        "kind": "llm" if llm_used else "graph",
+    }
+    if experiment_id:
+        payload["exp_id"] = experiment_id
+    slim = slim_citations(citations)
+    if slim:
+        payload["citations"] = slim
+    return json.dumps(payload, ensure_ascii=False)
+
+
+def parse_assistant_meta(meta: str | None) -> dict[str, Any]:
+    """Разбор meta: JSON (новый) или llm:EXP-… (старый)."""
+    if not meta:
+        return {"kind": "", "exp_id": None, "citations": None}
+    raw = meta.strip()
+    if raw.startswith("{"):
+        try:
+            data = json.loads(raw)
+            if isinstance(data, dict):
+                return {
+                    "kind": data.get("kind") or "",
+                    "exp_id": data.get("exp_id"),
+                    "citations": data.get("citations"),
+                }
+        except json.JSONDecodeError:
+            pass
+    kind, _, tail = raw.partition(":")
+    exp_id = tail if tail.startswith("EXP-") else None
+    return {"kind": kind or raw, "exp_id": exp_id, "citations": None}
 
 
 def create_conversation(title: str = "Новый диалог") -> Conversation:

@@ -241,12 +241,17 @@
     <div class="image-modal-panel" role="dialog" aria-modal="true" aria-label="Просмотр рисунка">
       <div class="image-modal-toolbar">
         <p id="image-modal-caption" class="image-modal-caption"></p>
-        <button type="button" id="image-modal-close" class="btn-secondary">Закрыть</button>
+        <div class="image-modal-toolbar-actions">
+          <span id="image-modal-counter" class="image-modal-counter" hidden></span>
+          <button type="button" id="image-modal-close" class="btn-secondary">Закрыть</button>
+        </div>
       </div>
       <div class="image-modal-body">
+        <button type="button" id="image-modal-prev" class="image-modal-nav image-modal-nav--prev" aria-label="Предыдущий рисунок" hidden>‹</button>
         <img id="image-modal-img" class="image-modal-img" alt="" />
-        <p id="image-modal-note" class="image-modal-note"></p>
+        <button type="button" id="image-modal-next" class="image-modal-nav image-modal-nav--next" aria-label="Следующий рисунок" hidden>›</button>
       </div>
+      <p id="image-modal-note" class="image-modal-note"></p>
     </div>
   </div>
 
@@ -265,6 +270,6 @@
       <div id="graph-modal-canvas" class="graph-canvas graph-canvas--modal"></div>
     </div>
   </div>
-  <script src="/static/app.js?v=23"></script>
+  <script src="/static/app.js?v=24"></script>
 </body>
 </html>

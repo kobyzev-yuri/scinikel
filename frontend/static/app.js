@@ -12,6 +12,13 @@ const imageModalEl = document.getElementById("image-modal");
 const imageModalImgEl = document.getElementById("image-modal-img");
 const imageModalCaptionEl = document.getElementById("image-modal-caption");
 const imageModalNoteEl = document.getElementById("image-modal-note");
+const imageModalCounterEl = document.getElementById("image-modal-counter");
+const imageModalPrevEl = document.getElementById("image-modal-prev");
+const imageModalNextEl = document.getElementById("image-modal-next");
+
+let lightboxSlides = [];
+let lightboxIndex = 0;
+let lastRenderedCitations = [];
 const uploadStatusEl = document.getElementById("upload-status");
 const ingestResultEl = document.getElementById("ingest-result");
 const visionStatusEl = document.getElementById("vision-status");
@@ -158,8 +165,29 @@ function parseMessageMeta(meta = "") {
   return { kind: kind || meta, center: center?.startsWith("EXP-") ? center : null };
 }
 
+function parseStoredMeta(meta = "") {
+  if (!meta) return { kind: "", center: null, citations: null };
+  const raw = String(meta).trim();
+  if (raw.startsWith("{")) {
+    try {
+      const data = JSON.parse(raw);
+      if (data && typeof data === "object") {
+        return {
+          kind: data.kind || "",
+          center: data.exp_id || null,
+          citations: Array.isArray(data.citations) ? data.citations : null,
+        };
+      }
+    } catch (_) {
+      /* legacy string below */
+    }
+  }
+  const { kind, center } = parseMessageMeta(raw);
+  return { kind, center, citations: null };
+}
+
 function formatMessageMeta(meta = "") {
-  const { kind } = parseMessageMeta(meta);
+  const { kind } = parseStoredMeta(meta);
   if (kind === "llm") return "ответ сформулирован LLM";
   if (kind === "graph") return "ответ из графа (без LLM)";
   return "";
@@ -201,7 +229,7 @@ async function restoreGraphForConversation(convId, messages) {
     const msg = messages[i];
     if (msg.role !== "assistant") continue;
 
-    const { center } = parseMessageMeta(msg.meta);
+    const { center } = parseStoredMeta(msg.meta);
     const expId = center || (msg.content.match(/EXP-\d{4}-\d{3}/) || [])[0];
     if (!expId) continue;
 
@@ -409,25 +437,62 @@ function closeGraphModal() {
   }
 }
 
-function openImageLightbox(url, caption = "", note = "") {
-  if (!imageModalEl || !imageModalImgEl) return;
-  const mediaUrl = normalizeMediaUrl(url);
-  if (!mediaUrl.startsWith("/api/media/images/")) return;
-  imageModalImgEl.src = mediaUrl;
-  imageModalImgEl.alt = caption || "Рисунок из документа";
-  if (imageModalCaptionEl) imageModalCaptionEl.textContent = caption || "Рисунок из документа";
+function slidesFromCitations(citations) {
+  return imageCitationsFrom(citations).map((c) => ({
+    url: normalizeMediaUrl(c.image_url),
+    caption: `${c.title || c.id || "Рисунок"}${c.page ? ` · стр. ${c.page}` : ""}`,
+    note: c.librarian_annotation || c.snippet || "",
+  }));
+}
+
+function showLightboxSlide() {
+  if (!lightboxSlides.length || !imageModalImgEl) return;
+  const slide = lightboxSlides[lightboxIndex];
+  imageModalImgEl.src = slide.url;
+  imageModalImgEl.alt = slide.caption || "Рисунок из документа";
+  if (imageModalCaptionEl) imageModalCaptionEl.textContent = slide.caption || "Рисунок из документа";
   if (imageModalNoteEl) {
-    imageModalNoteEl.textContent = note || "";
-    imageModalNoteEl.hidden = !note;
+    imageModalNoteEl.textContent = slide.note || "";
+    imageModalNoteEl.hidden = !slide.note;
   }
+  const multi = lightboxSlides.length > 1;
+  if (imageModalPrevEl) imageModalPrevEl.hidden = !multi;
+  if (imageModalNextEl) imageModalNextEl.hidden = !multi;
+  if (imageModalCounterEl) {
+    imageModalCounterEl.hidden = !multi;
+    imageModalCounterEl.textContent = multi ? `${lightboxIndex + 1} / ${lightboxSlides.length}` : "";
+  }
+}
+
+function openImageLightbox(url, caption = "", note = "", slides = null, startIndex = 0) {
+  if (!imageModalEl || !imageModalImgEl) return;
+  if (slides?.length) {
+    lightboxSlides = slides;
+    const idx = slides.findIndex((s) => s.url === normalizeMediaUrl(url));
+    lightboxIndex = idx >= 0 ? idx : Math.max(0, Math.min(startIndex, slides.length - 1));
+  } else {
+    const mediaUrl = normalizeMediaUrl(url);
+    if (!mediaUrl.startsWith("/api/media/images/")) return;
+    lightboxSlides = [{ url: mediaUrl, caption, note }];
+    lightboxIndex = 0;
+  }
+  showLightboxSlide();
   imageModalEl.hidden = false;
   document.body.style.overflow = "hidden";
+}
+
+function stepLightbox(delta) {
+  if (lightboxSlides.length < 2) return;
+  lightboxIndex = (lightboxIndex + delta + lightboxSlides.length) % lightboxSlides.length;
+  showLightboxSlide();
 }
 
 function closeImageLightbox() {
   if (!imageModalEl) return;
   imageModalEl.hidden = true;
   document.body.style.overflow = "";
+  lightboxSlides = [];
+  lightboxIndex = 0;
   if (imageModalImgEl) imageModalImgEl.removeAttribute("src");
 }
 
@@ -435,7 +500,7 @@ function imageCitationsFrom(citations) {
   return (citations || []).filter((c) => c.type === "image" && normalizeMediaUrl(c.image_url));
 }
 
-function buildMediaCard(c) {
+function buildMediaCard(c, slides, index) {
   const url = normalizeMediaUrl(c.image_url);
   const card = document.createElement("button");
   card.type = "button";
@@ -453,29 +518,54 @@ function buildMediaCard(c) {
   card.appendChild(img);
   card.appendChild(cap);
   const note = c.librarian_annotation || c.snippet || "";
-  card.addEventListener("click", () => openImageLightbox(url, cap.textContent, note));
+  card.addEventListener("click", () => openImageLightbox(url, cap.textContent, note, slides, index));
   return card;
 }
 
-function wireMediaInElement(root) {
+function wireMediaInElement(root, slides = null) {
   if (!root) return;
+  const slideList = slides || slidesFromCitations(lastRenderedCitations);
   root.querySelectorAll("[data-media-url]").forEach((el) => {
     if (el.dataset.mediaWired) return;
     el.dataset.mediaWired = "1";
     el.addEventListener("click", (e) => {
       e.preventDefault();
-      openImageLightbox(
-        el.dataset.mediaUrl,
-        el.dataset.mediaCaption || el.querySelector(".msg-media-cap")?.textContent || "",
-        el.dataset.mediaNote || ""
-      );
+      const url = el.dataset.mediaUrl;
+      const caption = el.dataset.mediaCaption || el.querySelector(".msg-media-cap")?.textContent || "";
+      const note = el.dataset.mediaNote || "";
+      openImageLightbox(url, caption, note, slideList.length ? slideList : null);
     });
   });
+}
+
+function appendSourcesHint(container, citations) {
+  const images = imageCitationsFrom(citations);
+  const hasDocs = (citations || []).some((c) => c.type === "document");
+  if (!images.length && !hasDocs) return;
+  const hint = document.createElement("div");
+  hint.className = "msg-sources-hint";
+  const text = document.createElement("p");
+  text.className = "msg-sources-hint-text";
+  text.textContent =
+    images.length && hasDocs
+      ? "Граф, текстовые фрагменты и карточки источников — на вкладке «Главная»."
+      : images.length
+        ? "Полные карточки рисунков и граф — на вкладке «Главная»."
+        : "Текстовые источники и граф — на вкладке «Главная».";
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "btn-secondary msg-sources-hint-btn";
+  btn.textContent = "Открыть «Главная»";
+  btn.addEventListener("click", () => switchTab("main"));
+  hint.appendChild(text);
+  hint.appendChild(btn);
+  container.appendChild(hint);
 }
 
 function appendMediaGallery(container, citations) {
   const images = imageCitationsFrom(citations);
   if (!images.length) return;
+  const slides = slidesFromCitations(citations);
   const gallery = document.createElement("div");
   gallery.className = "msg-media-gallery";
   const title = document.createElement("p");
@@ -484,9 +574,9 @@ function appendMediaGallery(container, citations) {
   gallery.appendChild(title);
   const grid = document.createElement("div");
   grid.className = "msg-media-gallery-grid";
-  for (const c of images) {
-    grid.appendChild(buildMediaCard(c));
-  }
+  images.forEach((c, index) => {
+    grid.appendChild(buildMediaCard(c, slides, index));
+  });
   gallery.appendChild(grid);
   container.appendChild(gallery);
 }
@@ -705,11 +795,20 @@ async function loadConversation(convId) {
     currentConversationId = data.id;
     chatHistory.length = 0;
     messagesEl.innerHTML = "";
+    let lastCitations = null;
     for (const msg of data.messages) {
-      appendMessage(msg.role, msg.content, formatMessageMeta(msg.meta));
+      const stored = parseStoredMeta(msg.meta);
+      const citations = msg.role === "assistant" ? stored.citations : null;
+      if (citations?.length) lastCitations = citations;
+      appendMessage(msg.role, msg.content, formatMessageMeta(msg.meta), citations);
       chatHistory.push({ role: msg.role, content: msg.content });
     }
     updateDialogInfo(Math.ceil(chatHistory.length / 2));
+    if (lastCitations?.length) {
+      renderCitations(lastCitations);
+    } else {
+      renderCitations([]);
+    }
     await restoreGraphForConversation(data.id, data.messages);
     await loadConversations();
   } catch (err) {
@@ -1168,8 +1267,9 @@ function appendMessage(role, text, meta = "", citations = null) {
   div.className = `msg ${role}`;
   if (role === "assistant") {
     div.innerHTML = renderMarkdown(text);
-    wireMediaInElement(div);
+    wireMediaInElement(div, citations ? slidesFromCitations(citations) : null);
     appendMediaGallery(div, citations);
+    appendSourcesHint(div, citations);
     if (meta) {
       const tag = document.createElement("div");
       tag.className = "msg-meta";
@@ -1297,6 +1397,8 @@ function citationMetaLine(c) {
 
 function renderCitations(citations) {
   if (!citationsEl) return;
+  lastRenderedCitations = citations || [];
+  const imageSlides = slidesFromCitations(lastRenderedCitations);
   citationsEl.innerHTML = "";
   if (!citations?.length) {
     citationsEl.innerHTML = '<p class="citations-empty">Нет привязанных источников</p>';
@@ -1350,8 +1452,10 @@ function renderCitations(citations) {
       img.loading = "lazy";
       btn.appendChild(img);
       const note = c.librarian_annotation || c.snippet || "";
+      const slideIndex = imageSlides.findIndex((s) => s.url === mediaUrl);
+      const caption = `${c.title || c.id || "Рисунок"}${c.page ? ` · стр. ${c.page}` : ""}`;
       btn.addEventListener("click", () =>
-        openImageLightbox(mediaUrl, c.title || c.id || "Рисунок", note)
+        openImageLightbox(mediaUrl, caption, note, imageSlides, slideIndex >= 0 ? slideIndex : 0)
       );
       figure.appendChild(btn);
       const capText = c.librarian_annotation || c.snippet;
@@ -1406,10 +1510,14 @@ function renderCitations(citations) {
         btn.textContent = "Увеличить";
         btn.addEventListener("click", () => {
           const mediaUrl = normalizeMediaUrl(c.image_url);
+          const slideIndex = imageSlides.findIndex((s) => s.url === mediaUrl);
+          const caption = `${c.title || c.id || "Рисунок"}${c.page ? ` · стр. ${c.page}` : ""}`;
           openImageLightbox(
             mediaUrl,
-            c.title || c.id || "Рисунок",
-            c.librarian_annotation || c.snippet || ""
+            caption,
+            c.librarian_annotation || c.snippet || "",
+            imageSlides,
+            slideIndex >= 0 ? slideIndex : 0
           );
         });
         actions.appendChild(btn);
@@ -1837,11 +1945,25 @@ document.getElementById("graph-modal-zoom-out")?.addEventListener("click", () =>
 document.getElementById("graph-modal-close")?.addEventListener("click", closeGraphModal);
 graphModalEl?.querySelector("[data-close-graph-modal]")?.addEventListener("click", closeGraphModal);
 document.getElementById("image-modal-close")?.addEventListener("click", closeImageLightbox);
+document.getElementById("image-modal-prev")?.addEventListener("click", () => stepLightbox(-1));
+document.getElementById("image-modal-next")?.addEventListener("click", () => stepLightbox(1));
 imageModalEl?.querySelector("[data-close-image-modal]")?.addEventListener("click", closeImageLightbox);
 document.addEventListener("keydown", (e) => {
-  if (e.key !== "Escape") return;
-  if (imageModalEl && !imageModalEl.hidden) closeImageLightbox();
-  else if (graphModalEl && !graphModalEl.hidden) closeGraphModal();
+  const lightboxOpen = imageModalEl && !imageModalEl.hidden;
+  const graphOpen = graphModalEl && !graphModalEl.hidden;
+  if (e.key === "Escape") {
+    if (lightboxOpen) closeImageLightbox();
+    else if (graphOpen) closeGraphModal();
+    return;
+  }
+  if (!lightboxOpen || lightboxSlides.length < 2) return;
+  if (e.key === "ArrowLeft") {
+    e.preventDefault();
+    stepLightbox(-1);
+  } else if (e.key === "ArrowRight") {
+    e.preventDefault();
+    stepLightbox(1);
+  }
 });
 
 renderDemoQuestions();
