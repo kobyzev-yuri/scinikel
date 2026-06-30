@@ -4,6 +4,7 @@ const input = document.getElementById("input");
 const demoQuestionsEl = document.getElementById("demo-questions");
 const citationsEl = document.getElementById("citations");
 const statsEl = document.getElementById("stats");
+const indexStatusEl = document.getElementById("index-status");
 const runtimeModeEl = document.getElementById("runtime-mode");
 const graphEl = document.getElementById("graph");
 const graphModalEl = document.getElementById("graph-modal");
@@ -1283,6 +1284,51 @@ function appendMessage(role, text, meta = "", citations = null) {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
+let imageIndexPollTimer = null;
+
+function updateImageIndexBadge(data) {
+  if (!indexStatusEl) return;
+  const expected = data?.giab_images_expected || 0;
+  const count = data?.giab_image_count || 0;
+  if (data?.images_indexing && expected > 0) {
+    indexStatusEl.hidden = false;
+    indexStatusEl.textContent = `Рисунки: ${count}/${expected}…`;
+    indexStatusEl.className = "badge index-status indexing";
+    indexStatusEl.title = "Фоновая индексация CLIP + Vision для демо-PDF";
+    return true;
+  }
+  if (expected > 0 && count >= expected) {
+    indexStatusEl.hidden = false;
+    indexStatusEl.textContent = `Рисунки: ${count}`;
+    indexStatusEl.className = "badge index-status ok";
+    indexStatusEl.title = "CLIP-индекс рисунков готов";
+    return false;
+  }
+  indexStatusEl.hidden = true;
+  return false;
+}
+
+async function pollImageIndexStatus() {
+  try {
+    const res = await fetch("/api/search/status");
+    if (!res.ok) return;
+    const data = await res.json();
+    const stillIndexing = updateImageIndexBadge(data);
+    if (!stillIndexing && imageIndexPollTimer) {
+      clearInterval(imageIndexPollTimer);
+      imageIndexPollTimer = null;
+    }
+  } catch (_) {
+    /* ignore */
+  }
+}
+
+function startImageIndexPolling() {
+  if (imageIndexPollTimer) return;
+  pollImageIndexStatus();
+  imageIndexPollTimer = setInterval(pollImageIndexStatus, 4000);
+}
+
 async function loadStatus() {
   try {
     const [graphRes, statusRes] = await Promise.all([
@@ -1301,6 +1347,7 @@ async function loadStatus() {
         : `Режим: ${status.work_mode_name || status.work_mode}. Нажмите для настройки.`;
     }
     updateOfflineButton(status.answer_mode || (status.llm_enabled ? "llm" : "rule"));
+    startImageIndexPolling();
   } catch (_) {
     statsEl.textContent = "Сервер недоступен";
     if (runtimeModeEl) {

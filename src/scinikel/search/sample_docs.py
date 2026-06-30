@@ -16,3 +16,8 @@ SAMPLE_DOC_META: dict[str, dict[str, str]] = {
         "doc_type": "report",
     },
 }
+
+# Ожидаемое число рисунков после CLIP-индекса (для UI-индикатора)
+SAMPLE_DOC_IMAGE_EXPECTED: dict[str, int] = {
+    "doc-giab-ni-cu-flotation-water": 5,
+}

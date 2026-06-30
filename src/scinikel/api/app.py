@@ -430,17 +430,28 @@ async def search_chunks(q: str, limit: int = 5):
 @app.get("/api/search/status")
 async def search_status():
     from scinikel.search.image_embeddings import clip_status
+    from scinikel.search.sample_docs import SAMPLE_DOC_IMAGE_EXPECTED
 
     idx = _doc_index or _create_doc_index()
     llm = runtime_payload()
     giab = "doc-giab-ni-cu-flotation-water"
+    giab_images = idx.doc_image_count(giab)
+    giab_expected = SAMPLE_DOC_IMAGE_EXPECTED.get(giab, 0)
+    clip = clip_status()
+    images_indexing = bool(
+        clip.get("available")
+        and giab_expected > 0
+        and giab_images < giab_expected
+    )
     return {
         "backend": idx.backend,
         "backends_active": idx.backends_active(),
         "chunk_count": idx.chunk_count,
         "giab_chunk_count": idx.doc_chunk_count(giab),
-        "giab_image_count": idx.doc_image_count(giab),
-        "clip": clip_status(),
+        "giab_image_count": giab_images,
+        "giab_images_expected": giab_expected,
+        "images_indexing": images_indexing,
+        "clip": clip,
         "search_mode": llm["search_mode"],
         "vector_search_enabled": llm["vector_search_enabled"],
         "hybrid_search_enabled": llm.get("hybrid_search_enabled", False),
