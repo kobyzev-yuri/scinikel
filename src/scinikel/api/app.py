@@ -538,8 +538,12 @@ async def ingest_pdf(
         extraction["document"]["id"] = doc_id
 
     images_indexed = 0
+    chunks_indexed = 0
+    search_backend = None
     if _doc_index:
         _doc_index.index_text(doc_id, enriched, {"title": parsed["title"], "doc_type": "report"})
+        chunks_indexed = _doc_index.doc_chunk_count(doc_id)
+        search_backend = _doc_index.backend
         if index_images:
             analyses = (extraction.get("image_analysis") or {}).get("image_analyses")
             images_indexed = _index_pdf_images(
@@ -556,6 +560,9 @@ async def ingest_pdf(
         "pages_parsed": parsed.get("pages_parsed"),
         "images_count": len(images),
         "images_indexed": images_indexed,
+        "chunks_indexed": chunks_indexed,
+        "search_backend": search_backend,
+        "doc_id": doc_id,
         "analyze_images": analyze_images,
         "vision_provider": (extraction.get("image_analysis") or {}).get("provider"),
         "vision_images_used": (extraction.get("image_analysis") or {}).get("relevant_images_count", 0),

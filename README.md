@@ -4,6 +4,7 @@
 
 > Идея и позиционирование: [Best_Idea.md](./Best_Idea.md)  
 > План работ и статус: [PLAN.md](./PLAN.md)  
+> **Бэкофис KB (чанки, e5):** [docs/KB_BACKOFFICE.md](./docs/KB_BACKOFFICE.md)  
 > **Архитектура (диаграммы потоков):** [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)  
 > **Юзабилити (бэклог UX):** [docs/USABILITY.md](./docs/USABILITY.md)  
 > **Roadmap поиска:** [docs/SEARCH_ROADMAP.md](./docs/SEARCH_ROADMAP.md)  

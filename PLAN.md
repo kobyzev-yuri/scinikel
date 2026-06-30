@@ -240,6 +240,7 @@ ls data/samples/.cache/images/doc-giab-ni-cu-flotation-water/
 | Файл | Назначение |
 |------|------------|
 | [PLAN.md](./PLAN.md) | **Этот файл** — общий план и статус |
+| [docs/KB_BACKOFFICE.md](./docs/KB_BACKOFFICE.md) | **Бэкофис KB** — ingest, чанки, e5 |
 | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | **Архитектура** — слои, потоки, диаграммы |
 | [docs/USABILITY.md](./docs/USABILITY.md) | UX: сделано + бэклог + приёмка |
 | [docs/SEARCH_ROADMAP.md](./docs/SEARCH_ROADMAP.md) | Этапы поиска BM25 → hybrid → rerank |
@@ -253,6 +254,7 @@ ls data/samples/.cache/images/doc-giab-ni-cu-flotation-water/
 ## Решения (не обсуждать заново)
 
 - **UI:** HTML + JS; юзабилити важнее новых фич
+- **Индексация чанков (BM25 + e5):** только бэкофис («База знаний» / ingest API), не диалог — см. [docs/KB_BACKOFFICE.md](docs/KB_BACKOFFICE.md)
 - **Рисунки:** галерея + лайтбокс, не ссылки в новую вкладку
 - **Диалоги:** SQLite
 - **Vector DB:** Qdrant + e5

@@ -1,7 +1,7 @@
 # Архитектура решения — «Научный клубок»
 
 > Документ для защиты и команды: слои системы, потоки данных, поиск.  
-> Связано: [PLAN.md](../PLAN.md) · [SEARCH_ROADMAP.md](./SEARCH_ROADMAP.md) · [USABILITY.md](./USABILITY.md)
+> Связано: [PLAN.md](../PLAN.md) · [KB_BACKOFFICE.md](./KB_BACKOFFICE.md) · [SEARCH_ROADMAP.md](./SEARCH_ROADMAP.md) · [USABILITY.md](./USABILITY.md)
 
 **Обновлено:** 2026-06-30
 
@@ -11,6 +11,8 @@
 
 «Научный клубок» — диалоговый ассистент исследователя Норникеля поверх **графа знаний** и **корпуса документов**.  
 LLM не хранит факты: извлекает их из графа, чанков PDF и CLIP-индекса рисунков, формирует ответ с **citations**.
+
+**Важно:** нарезка текста на чанки и индексация e5 → Qdrant выполняются в **бэкофисе** (вкладка «База знаний», ingest API), а не при вопросе в чате. Подробно: [KB_BACKOFFICE.md](./KB_BACKOFFICE.md).
 
 ---
 
@@ -405,6 +407,7 @@ flowchart LR
 
 ## 11. Связанные документы
 
+- [KB_BACKOFFICE.md](./KB_BACKOFFICE.md) — бэкофис: ingest, чанки, e5
 - [PLAN.md](../PLAN.md) — статус и приоритеты
 - [SEARCH_ROADMAP.md](./SEARCH_ROADMAP.md) — этапы 0–6 поиска
 - [MULTIMODAL_STATUS.md](./MULTIMODAL_STATUS.md) — GIAB, CLIP, Vision

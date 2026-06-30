@@ -1615,7 +1615,10 @@ function renderIngestResult(data) {
   const grid = document.createElement("div");
   grid.className = "ingest-result-grid";
   const rows = [
+    ["doc_id", parsed.doc_id ?? "—"],
     ["Страниц обработано", parsed.pages_parsed ?? "—"],
+    ["Текстовых чанков", parsed.chunks_indexed ?? "—"],
+    ["Поиск (backend)", parsed.search_backend ?? "—"],
     ["Картинок в PDF", parsed.images_count ?? 0],
     ["Vision (описано)", `${parsed.vision_images_used ?? 0} · ${parsed.vision_provider || "—"}`],
     ["CLIP проиндексировано", parsed.images_indexed ?? 0],

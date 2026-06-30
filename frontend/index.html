@@ -183,6 +183,8 @@
         <h2>Управление базой знаний</h2>
         <p class="knowledge-intro">
           Загрузка документов и обслуживание графа — отдельно от диалога исследователя.
+          При загрузке PDF здесь же выполняется <strong>индексация текстовых чанков</strong> (BM25 + e5 → Qdrant) —
+          это функция бэкофиса, не чата.
         </p>
 
         <div class="knowledge-grid">
@@ -271,6 +273,6 @@
       <div id="graph-modal-canvas" class="graph-canvas graph-canvas--modal"></div>
     </div>
   </div>
-  <script src="/static/app.js?v=26"></script>
+  <script src="/static/app.js?v=27"></script>
 </body>
 </html>
