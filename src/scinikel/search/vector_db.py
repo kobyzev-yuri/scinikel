@@ -352,6 +352,25 @@ class VectorDBService:
             logger.warning("Qdrant delete_doc_images %s: %s", doc_id, exc)
             return 0
 
+    def delete_doc_chunks(self, doc_id: str) -> int:
+        """Удалить все текстовые чанки документа из Qdrant перед переиндексацией."""
+        if not self.available:
+            return 0
+        rows = self.scroll_doc_chunks(doc_id)
+        if not rows:
+            return 0
+        try:
+            from qdrant_client.models import FieldCondition, Filter, MatchValue
+
+            doc_filter = Filter(
+                must=[FieldCondition(key="doc_id", match=MatchValue(value=str(doc_id)))]
+            )
+            self.client.delete(collection_name=self.collection, points_selector=doc_filter)
+            return len(rows)
+        except Exception as exc:
+            logger.warning("Qdrant delete_doc_chunks %s: %s", doc_id, exc)
+            return 0
+
 
 def get_vector_db() -> VectorDBService:
     global _vector_db

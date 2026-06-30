@@ -1080,6 +1080,125 @@ button:hover { background: var(--accent-hover); }
   gap: 1rem;
 }
 
+.knowledge-card--wide {
+  grid-column: 1 / -1;
+}
+
+.knowledge-card--details summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.kb-search-summary {
+  margin-bottom: 0.75rem;
+}
+
+.kb-search-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.kb-documents-table-wrap {
+  overflow-x: auto;
+}
+
+.kb-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.kb-table th,
+.kb-table td {
+  padding: 0.45rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.kb-table th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.kb-table td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.kb-doc-title {
+  display: block;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.kb-doc-id {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin-top: 0.15rem;
+}
+
+.kb-status {
+  display: inline-block;
+  margin-top: 0.2rem;
+  font-size: 0.65rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+}
+
+.kb-status.ok {
+  color: var(--accent);
+  border: 1px solid rgba(76, 175, 130, 0.4);
+}
+
+.kb-status.warn {
+  color: #e8d48a;
+  border: 1px solid rgba(201, 162, 39, 0.4);
+}
+
+.kb-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 6.5rem;
+}
+
+.kb-btn {
+  padding: 0.25rem 0.45rem;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.curate-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.curate-form input,
+.curate-form select,
+.curate-form textarea {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 0.45rem 0.55rem;
+  font: inherit;
+}
+
+.curate-form label {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
 .knowledge-card {
   background: var(--bg);
   border: 1px solid var(--border);

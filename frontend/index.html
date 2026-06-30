@@ -188,6 +188,15 @@
         </p>
 
         <div class="knowledge-grid">
+          <div class="knowledge-card knowledge-card--wide">
+            <h3>Корпус документов и индекс</h3>
+            <p class="card-muted">Чанки (BM25 + e5) и рисунки (CLIP) формируются здесь, не в диалоге.</p>
+            <div id="kb-search-summary" class="kb-search-summary">Загрузка статуса поиска…</div>
+            <div id="kb-documents" class="kb-documents-table-wrap">
+              <p class="card-muted">Загрузка каталога…</p>
+            </div>
+          </div>
+
           <div class="knowledge-card">
             <h3>Загрузка данных</h3>
             <form id="upload-xlsx" class="upload-form">
@@ -200,13 +209,13 @@
               <input type="file" name="file" accept=".pdf" />
               <label class="checkbox-inline">
                 <input type="checkbox" id="pdf-analyze-images" checked />
-                Анализ таблиц/графиков (Gemini Vision)
+                Vision (таблицы / графики)
               </label>
               <label class="checkbox-inline">
                 <input type="checkbox" id="pdf-index-images" checked />
-                Индекс картинок (OpenCLIP)
+                CLIP-индекс рисунков
               </label>
-              <button type="submit">Загрузить</button>
+              <button type="submit">Загрузить и проиндексировать</button>
             </form>
             <p id="vision-status" class="upload-status card-muted">Vision: …</p>
             <p id="upload-status" class="upload-status"></p>
@@ -214,26 +223,43 @@
           </div>
 
           <div class="knowledge-card">
-            <h3>Состояние графа</h3>
-            <pre id="graph-detail" class="graph-detail">Загрузка…</pre>
-            <button type="button" id="reload-seed" class="btn-secondary">Перезагрузить демо-данные</button>
+            <h3>Текст в базу (curate)</h3>
+            <p class="card-muted">Правка или добавление текста → чанки + e5 автоматически.</p>
+            <form id="curate-form" class="curate-form">
+              <label>Заголовок / doc_id</label>
+              <input type="text" id="curate-title" name="title" placeholder="Название отчёта" required />
+              <label>Тип</label>
+              <select id="curate-doc-type" name="doc_type">
+                <option value="report">отчёт</option>
+                <option value="internal_report">внутренний отчёт</option>
+                <option value="article">статья</option>
+                <option value="protocol">протокол</option>
+              </select>
+              <label>Текст документа</label>
+              <textarea id="curate-content" name="content" rows="6" placeholder="Вставьте текст для индексации…" required></textarea>
+              <button type="submit">Сохранить и проиндексировать</button>
+            </form>
+            <p id="curate-status" class="upload-status"></p>
           </div>
 
           <div class="knowledge-card">
-            <h3>NetworkX сейчас</h3>
-            <p class="card-text">
-              Лёгкий in-memory граф в JSON — достаточно для демо и хакатона:
-              обход связей, gap-analysis, визуализация фрагментов.
-            </p>
-            <h3>Neo4j — когда нужен</h3>
-            <ul class="neo4j-list">
-              <li>Cypher-запросы на больших графах (тысячи экспериментов)</li>
-              <li>Одновременная запись из нескольких ingest-пайплайнов</li>
-              <li>Сложные multi-hop паттерны и аналитика связности</li>
-              <li>Продакшен с репликацией и ACL</li>
-            </ul>
-            <p class="card-muted">Сейчас: <code>GRAPH_BACKEND=networkx</code>. Neo4j — заглушка в коде, включается позже.</p>
+            <h3>Граф экспериментов</h3>
+            <pre id="graph-detail" class="graph-detail">Загрузка…</pre>
+            <button type="button" id="reload-seed" class="btn-secondary">Перезагрузить демо (граф + seed)</button>
           </div>
+
+          <details class="knowledge-card knowledge-card--details">
+            <summary>Neo4j и масштабирование</summary>
+            <p class="card-text">
+              Сейчас: <code>GRAPH_BACKEND=networkx</code> — in-memory JSON, достаточно для демо.
+            </p>
+            <ul class="neo4j-list">
+              <li>Cypher на больших графах</li>
+              <li>Параллельный ingest</li>
+              <li>Multi-hop аналитика</li>
+              <li>Репликация и ACL</li>
+            </ul>
+          </details>
         </div>
       </section>
     </div>
@@ -273,6 +299,6 @@
       <div id="graph-modal-canvas" class="graph-canvas graph-canvas--modal"></div>
     </div>
   </div>
-  <script src="/static/app.js?v=27"></script>
+  <script src="/static/app.js?v=28"></script>
 </body>
 </html>

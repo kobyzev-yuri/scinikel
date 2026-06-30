@@ -132,6 +132,62 @@ class DocumentIndex:
     def _remove_doc_chunks(self, doc_id: str) -> None:
         self._chunks = [c for c in self._chunks if (c.get("metadata") or {}).get("doc_id") != doc_id]
 
+    def purge_doc_index(self, doc_id: str) -> None:
+        """Снять документ с индекса (память + Qdrant) перед полной переиндексацией."""
+        self._remove_doc_chunks(doc_id)
+        if self._vector_ok():
+            self._vector_db.delete_doc_chunks(doc_id)
+        self._rebuild_bm25()
+
+    def reindex_document(self, doc_id: str, *, index_images: bool = False) -> dict[str, Any]:
+        """Переиндексация из seed или sample PDF — операция бэкофиса."""
+        from scinikel.ingest.pdf_parser import parse_pdf
+        from scinikel.kb.catalog import seed_document_text
+        from scinikel.search.sample_docs import SAMPLE_DOC_META, SAMPLE_DOC_PDFS
+
+        self.purge_doc_index(doc_id)
+        images_indexed = 0
+        source = ""
+
+        pdf_path = SAMPLE_DOC_PDFS.get(doc_id)
+        if pdf_path and pdf_path.is_file():
+            parsed = parse_pdf(pdf_path, max_pages=50)
+            if not parsed:
+                raise ValueError(f"Failed to parse sample PDF for {doc_id}")
+            meta = dict(SAMPLE_DOC_META.get(doc_id) or {})
+            meta.setdefault("title", pdf_path.stem)
+            meta.setdefault("doc_type", "report")
+            from scinikel.search.pdf_images import persist_pdf_images
+
+            persist_pdf_images(doc_id, parsed.get("images") or [])
+            self.index_text(doc_id, parsed["content"], meta)
+            source = "sample_pdf"
+            if index_images:
+                from scinikel.search.pdf_images import index_pdf_images
+
+                images_indexed = index_pdf_images(
+                    self,
+                    doc_id,
+                    parsed.get("images") or [],
+                    meta.get("title") or doc_id,
+                    analyze_images=True,
+                )
+        else:
+            seed = seed_document_text(doc_id)
+            if not seed:
+                raise ValueError(f"No reindex source for document {doc_id}")
+            text, meta = seed
+            self.index_text(doc_id, text, meta)
+            source = "seed"
+
+        return {
+            "doc_id": doc_id,
+            "source": source,
+            "chunks_indexed": self.doc_chunk_count(doc_id),
+            "images_indexed": images_indexed or self.doc_image_count(doc_id),
+            "search_backend": self.backend,
+        }
+
     def _rebuild_bm25(self) -> None:
         self._bm25.rebuild(self._chunks)
 

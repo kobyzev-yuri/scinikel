@@ -459,6 +459,34 @@ async def search_status():
     }
 
 
+@app.get("/api/kb/documents")
+async def kb_documents():
+    """Каталог документов KB со статусом индекса чанков и рисунков."""
+    from scinikel.kb.catalog import kb_document_catalog
+
+    idx = _doc_index or _create_doc_index()
+    llm = runtime_payload()
+    return {
+        "search_backend": idx.backend,
+        "backends_active": idx.backends_active(),
+        "chunk_count": idx.chunk_count,
+        "search_mode": llm["search_mode"],
+        "vector_search_enabled": llm["vector_search_enabled"],
+        "documents": kb_document_catalog(idx),
+    }
+
+
+@app.post("/api/kb/documents/{doc_id}/reindex")
+async def kb_reindex_document(doc_id: str, index_images: bool = False):
+    """Переиндексация документа (seed или sample PDF) — бэкофис."""
+    idx = _doc_index or _create_doc_index()
+    try:
+        result = idx.reindex_document(doc_id, index_images=index_images)
+    except ValueError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    return {"status": "ok", **result}
+
+
 @app.post("/api/ingest/curate")
 async def ingest_curate(req: CurateRequest):
     if _graph is None:

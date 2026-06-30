@@ -178,9 +178,9 @@ curl "http://localhost:8000/api/search/chunks?q=жесткость+воды+фл
 | B1 | Ingest PDF → `index_text` (BM25 + e5) | ✅ |
 | B2 | Сводка ingest: число чанков + backend | ✅ |
 | B3 | Production: все sample PDF в Qdrant (этап 2) | 🟡 |
-| B4 | UI: список документов KB + статус индекса | ⬜ |
-| B5 | UI: редактирование текста + «Переиндексировать» | ⬜ |
-| B6 | Удаление doc_id из Qdrant при снятии с публикации | ⬜ |
+| B4 | UI: список документов KB + статус индекса | ✅ |
+| B5 | UI: редактирование текста + «Переиндексировать» | ✅ curate + reindex |
+| B6 | Удаление doc_id из Qdrant при снятии с публикации | 🟡 purge при reindex |
 
 ---
 

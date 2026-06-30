@@ -22,6 +22,9 @@ let lightboxIndex = 0;
 let lastRenderedCitations = [];
 const uploadStatusEl = document.getElementById("upload-status");
 const ingestResultEl = document.getElementById("ingest-result");
+const kbDocumentsEl = document.getElementById("kb-documents");
+const kbSearchSummaryEl = document.getElementById("kb-search-summary");
+const curateStatusEl = document.getElementById("curate-status");
 const visionStatusEl = document.getElementById("vision-status");
 const dialogInfoEl = document.getElementById("dialog-info");
 const newDialogBtn = document.getElementById("new-dialog");
@@ -871,6 +874,146 @@ async function loadGraphDetail() {
   }
 }
 
+const KB_SOURCE_LABELS = { seed: "seed", sample: "демо-PDF", ingest: "загрузка" };
+
+function renderKbDocuments(data) {
+  if (!kbDocumentsEl) return;
+  const docs = data?.documents || [];
+  if (!docs.length) {
+    kbDocumentsEl.innerHTML = '<p class="citations-empty">Нет документов в каталоге</p>';
+    return;
+  }
+  const table = document.createElement("table");
+  table.className = "kb-table";
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Документ</th>
+        <th>Тип</th>
+        <th>Чанки</th>
+        <th>Рисунки</th>
+        <th>Источник</th>
+        <th></th>
+      </tr>
+    </thead>`;
+  const tbody = document.createElement("tbody");
+  for (const doc of docs) {
+    const tr = document.createElement("tr");
+    const indexed = doc.indexed
+      ? '<span class="kb-status ok">в индексе</span>'
+      : '<span class="kb-status warn">нет чанков</span>';
+    const imgCell =
+      doc.images_expected > 0
+        ? `${doc.image_count || 0}/${doc.images_expected}`
+        : String(doc.image_count || 0);
+    tr.innerHTML = `
+      <td>
+        <span class="kb-doc-title">${escapeHtml(doc.title || doc.doc_id)}</span>
+        <code class="kb-doc-id">${escapeHtml(doc.doc_id)}</code>
+        ${indexed}
+      </td>
+      <td>${escapeHtml(doc.doc_type_label || doc.doc_type || "—")}</td>
+      <td class="num">${doc.chunk_count || 0}</td>
+      <td class="num">${imgCell}</td>
+      <td>${escapeHtml(KB_SOURCE_LABELS[doc.source] || doc.source)}</td>
+      <td class="kb-actions"></td>`;
+    const actions = tr.querySelector(".kb-actions");
+    if (doc.reindexable) {
+      const reBtn = document.createElement("button");
+      reBtn.type = "button";
+      reBtn.className = "btn-secondary kb-btn";
+      reBtn.textContent = "Переиндекс";
+      reBtn.title = "Чанки + e5; для sample PDF опционально CLIP";
+      reBtn.addEventListener("click", () => reindexKbDocument(doc.doc_id, doc.has_pdf));
+      actions.appendChild(reBtn);
+    }
+    const askBtn = document.createElement("button");
+    askBtn.type = "button";
+    askBtn.className = "btn-secondary kb-btn";
+    askBtn.textContent = "В диалог";
+    askBtn.addEventListener("click", () => {
+      switchTab("dialog");
+      sendMessage(`Что в документе ${doc.doc_id} по теме жёсткости воды и флотации?`);
+    });
+    actions.appendChild(askBtn);
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+  kbDocumentsEl.innerHTML = "";
+  kbDocumentsEl.appendChild(table);
+}
+
+function renderKbSearchSummary(data) {
+  if (!kbSearchSummaryEl) return;
+  const backends = (data.backends_active || []).join(" · ") || "—";
+  kbSearchSummaryEl.innerHTML = `
+    <div class="kb-search-grid">
+      <span><strong>Режим:</strong> ${escapeHtml(data.search_mode || "—")}</span>
+      <span><strong>Backend:</strong> ${escapeHtml(data.search_backend || "—")}</span>
+      <span><strong>Чанков всего:</strong> ${data.chunk_count ?? 0}</span>
+      <span><strong>Слои:</strong> ${escapeHtml(backends)}</span>
+    </div>`;
+}
+
+async function loadKbCatalog() {
+  if (!kbDocumentsEl) return;
+  try {
+    const res = await fetch("/api/kb/documents");
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    renderKbSearchSummary(data);
+    renderKbDocuments(data);
+  } catch (err) {
+    kbDocumentsEl.innerHTML = `<p class="citations-empty">Каталог недоступен: ${escapeHtml(err.message)}</p>`;
+    if (kbSearchSummaryEl) kbSearchSummaryEl.textContent = "";
+  }
+}
+
+async function reindexKbDocument(docId, hasPdf) {
+  const indexImages = hasPdf
+    ? window.confirm(`Переиндексировать «${docId}»?\n\nДа — с CLIP/Vision для рисунков.\nОтмена — только текстовые чанки.`)
+    : false;
+  if (uploadStatusEl) uploadStatusEl.textContent = `Переиндексация ${docId}…`;
+  try {
+    const qs = new URLSearchParams({ index_images: String(indexImages) });
+    const res = await fetch(`/api/kb/documents/${encodeURIComponent(docId)}/reindex?${qs}`, {
+      method: "POST",
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
+    if (uploadStatusEl) {
+      uploadStatusEl.textContent = `OK: ${docId} — ${data.chunks_indexed} чанков, backend ${data.search_backend}`;
+    }
+    await loadKbCatalog();
+    startImageIndexPolling();
+  } catch (err) {
+    if (uploadStatusEl) uploadStatusEl.textContent = `Ошибка: ${err.message}`;
+  }
+}
+
+async function submitCurateForm(e) {
+  e.preventDefault();
+  const title = document.getElementById("curate-title")?.value?.trim();
+  const content = document.getElementById("curate-content")?.value?.trim();
+  const docType = document.getElementById("curate-doc-type")?.value || "report";
+  if (!title || !content) return;
+  if (curateStatusEl) curateStatusEl.textContent = "Индексация…";
+  try {
+    const res = await fetch("/api/ingest/curate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, content, doc_type: docType, ingest: true }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
+    const docId = data.extraction?.document?.id || title;
+    if (curateStatusEl) curateStatusEl.textContent = `Сохранено: ${docId} — обновите каталог`;
+    await loadKbCatalog();
+  } catch (err) {
+    if (curateStatusEl) curateStatusEl.textContent = `Ошибка: ${err.message}`;
+  }
+}
+
 function switchTab(tabName) {
   document.querySelectorAll(".tab-btn").forEach((b) => {
     b.classList.toggle("active", b.dataset.tab === tabName);
@@ -881,6 +1024,7 @@ function switchTab(tabName) {
   if (tabName === "knowledge") {
     loadGraphDetail();
     loadVisionStatus();
+    loadKbCatalog();
   }
   if (tabName === "llm") loadLlmConfig();
 }
@@ -1820,6 +1964,7 @@ async function uploadFile(formEl, endpoint) {
     loadStatus();
     loadGraphDetail();
     loadVisionStatus();
+    loadKbCatalog();
   } catch (err) {
     uploadStatusEl.textContent = `Ошибка: ${err.message}`;
   }
@@ -1983,10 +2128,13 @@ document.getElementById("reload-seed")?.addEventListener("click", async () => {
     uploadStatusEl.textContent = `OK: ${data.graph?.entities ?? "?"} сущностей`;
     loadStatus();
     loadGraphDetail();
+    loadKbCatalog();
   } catch (err) {
     uploadStatusEl.textContent = `Ошибка: ${err.message}`;
   }
 });
+
+document.getElementById("curate-form")?.addEventListener("submit", submitCurateForm);
 
 document.getElementById("upload-xlsx").addEventListener("submit", (e) => {
   e.preventDefault();
