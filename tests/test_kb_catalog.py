@@ -35,3 +35,28 @@ def test_reindex_document_from_seed():
     assert result["source"] == "seed"
     assert result["chunks_indexed"] > 0
     assert idx.has_doc_chunks("DOC-2024-112")
+
+
+def test_reindex_all_documents():
+    idx = DocumentIndex(enable_vector=False)
+    result = idx.reindex_all_documents()
+    assert result["chunk_count"] > 0
+    assert len(result["documents"]) >= 1
+    errors = [d for d in result["documents"] if d.get("error")]
+    assert not errors
+
+
+def test_remove_document_from_index():
+    idx = DocumentIndex(enable_vector=False)
+    idx.reindex_document("DOC-2024-112")
+    assert idx.has_doc_chunks("DOC-2024-112")
+    removed = idx.remove_document_from_index("DOC-2024-112")
+    assert removed["chunks_removed"] > 0
+    assert not idx.has_doc_chunks("DOC-2024-112")
+
+
+def test_list_reindexable_doc_ids():
+    from scinikel.kb.catalog import list_reindexable_doc_ids
+
+    ids = list_reindexable_doc_ids()
+    assert "DOC-2024-112" in ids

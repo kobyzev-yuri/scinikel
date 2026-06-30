@@ -33,7 +33,7 @@ cp data/llm_runtime.json.example data/llm_runtime.json  # при первом к
 | 5 | Rerank CrossEncoder | 🟡 выкл (`RERANK_ENABLED=false`) |
 | **6a** | OpenCLIP + Qdrant images | ✅ |
 | **6b** | Vision LLM + куратор | ✅ |
-| **6c** | Поиск с фото + UI upload | 🟡 карточки источников + ingest-панель; POST image search — нет |
+| **6c** | Поиск с фото + UI upload | ✅ `POST /api/search/image`, кнопка 🖼 в диалоге |
 
 ## Прогон на GIAB PDF (2026-06-29)
 

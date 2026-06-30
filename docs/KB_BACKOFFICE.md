@@ -102,6 +102,8 @@ qdrant.upsert(chunk_id, vector, metadata)
 | Текст / curate | `POST /api/ingest/curate` | ✅ | ✅ | — |
 | Каталог XLSX | `POST /api/ingest/xlsx` | — | ✅ эксперименты | — |
 | Пересборка демо | `POST /api/admin/reload` | ✅ seed + samples | ✅ | фон |
+| Переиндекс всего корпуса | `POST /api/kb/reindex-all` | ✅ seed + samples | — | опционально |
+| Снять ingest-документ | `DELETE /api/kb/documents/{doc_id}` | ✅ purge | — | опционально |
 
 После загрузки PDF на вкладке «База знаний» в сводке ingest отображаются:
 
@@ -177,10 +179,10 @@ curl "http://localhost:8000/api/search/chunks?q=жесткость+воды+фл
 |---|--------|--------|
 | B1 | Ingest PDF → `index_text` (BM25 + e5) | ✅ |
 | B2 | Сводка ingest: число чанков + backend | ✅ |
-| B3 | Production: все sample PDF в Qdrant (этап 2) | 🟡 |
+| B3 | Production: все sample PDF в Qdrant (этап 2) | ✅ reindex-all + sync bootstrap |
 | B4 | UI: список документов KB + статус индекса | ✅ |
 | B5 | UI: редактирование текста + «Переиндексировать» | ✅ curate + reindex |
-| B6 | Удаление doc_id из Qdrant при снятии с публикации | 🟡 purge при reindex |
+| B6 | Удаление doc_id из Qdrant при снятии с публикации | ✅ DELETE ingest-only |
 
 ---
 

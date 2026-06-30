@@ -72,7 +72,7 @@
 | Qdrant payload filters | ✅ | `doc_type`, `experiment_ids` ← 3dtoday |
 | **Vision LLM (Gemini 3.5)** | ✅ | `vision_analyzer.py`, ingest PDF |
 | **CLIP image search** | ✅ | `scinikel_images`, `GET /api/search/images` |
-| Поиск с загруженным фото (6c) | 🟡 | API ingest only; нет `/api/search/image` POST |
+| Поиск с загруженным фото (6c) | ✅ | `POST /api/search/image`, кнопка 🖼 в диалоге |
 | Режимы работы (lite / local / full / custom) | ✅ | default **full** + proxyapi → см. `docs/MULTIMODAL_STATUS.md` |
 
 ### Модели и хранилища (текст)

@@ -272,6 +272,9 @@ class VectorDBService:
             logger.error("Qdrant scroll failed for %s: %s", doc_id, exc)
             return []
 
+    def count_doc_chunks(self, doc_id: str) -> int:
+        return len(self.scroll_doc_chunks(doc_id))
+
     def count_doc_images(self, doc_id: str) -> int:
         return len(self.scroll_doc_images(doc_id))
 

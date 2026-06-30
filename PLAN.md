@@ -132,13 +132,13 @@ Ingest: PDF → Vision → Curator → граф + Qdrant (текст + images)
 |------|------------|--------|
 | 0 | Baseline + порты 3dtoday | ✅ |
 | 1 | BM25 + чанкинг | ✅ |
-| 2 | e5 на чанках, production Qdrant | 🟡 |
+| 2 | e5 на чанках, production Qdrant | ✅ reindex-all + bootstrap sync |
 | 3 | Гибрид BM25 + vector (RRF) | ✅ |
 | 4 | Graph metadata boost | 🟡 |
 | 5 | Rerank (cross-encoder) | 🟡 код, выкл |
 | 6a | OpenCLIP + image collection | ✅ |
 | 6b | Vision + librarian | ✅ |
-| 6c | Поиск по загруженному фото в чате | ⬜ |
+| 6c | Поиск по загруженному фото в чате | ✅ POST /api/search/image + 🖼 в диалоге |
 
 ### 🟡 Юзабилити (следующие улучшения)
 
@@ -226,9 +226,9 @@ ls data/samples/.cache/images/doc-giab-ni-cu-flotation-water/
 | Проблема | Статус |
 |----------|--------|
 | Данные Норникеля | ❌ ждём организаторов |
-| e5 на чunks — не везде production | 🟡 этап 2 |
+| e5 на чunks — не везде production | ✅ reindex-all + sync при старте |
 | Rerank выключен по умолчанию | 🟡 этап 5 |
-| Поиск по фото в чате (6c) | ⬜ |
+| Поиск по фото в чате (6c) | ✅ POST /api/search/image |
 | Галерея не восстанавливается из SQLite | ✅ citations в JSON meta (новые ответы) |
 | Neo4j — заглушка | `graph/neo4j_store.py` |
 | `conversations.db` локальная | не в git |

@@ -129,6 +129,10 @@ def _rebuild_doc_index() -> DocumentIndex:
     doc_index = _create_doc_index()
     _index_seed_documents(doc_index)
     _index_sample_pdfs(doc_index)
+    if doc_index._vector_ok():
+        synced = doc_index.sync_all_vectors()
+        if any(synced.values()):
+            logger.info("Qdrant vector sync on bootstrap: %s", synced)
     _doc_index = doc_index
     if _graph is not None:
         query_engine = HybridQueryEngine(_graph, doc_index)
@@ -146,6 +150,10 @@ def _bootstrap() -> tuple[NetworkXGraphStore, DocumentIndex, ResearchAgent]:
     doc_index = _create_doc_index()
     _index_seed_documents(doc_index)
     _index_sample_pdfs(doc_index)
+    if doc_index._vector_ok():
+        synced = doc_index.sync_all_vectors()
+        if any(synced.values()):
+            logger.info("Qdrant vector sync on bootstrap: %s", synced)
 
     query_engine = HybridQueryEngine(graph, doc_index)
     _graph = graph
@@ -382,6 +390,35 @@ async def search_images(q: str, limit: int = 5, doc_id: str | None = None):
     }
 
 
+@app.post("/api/search/image")
+async def search_by_uploaded_image(
+    file: UploadFile = File(...),
+    limit: int = 5,
+    doc_id: str | None = None,
+    q: str = "",
+):
+    """Поиск похожих рисунков в KB по загруженному фото (этап 6c)."""
+    suffix = Path(file.filename or "query.jpg").suffix or ".jpg"
+    if suffix.lower() not in {".jpg", ".jpeg", ".png", ".webp", ".gif"}:
+        raise HTTPException(400, "Supported formats: jpg, png, webp, gif")
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        shutil.copyfileobj(file.file, tmp)
+        tmp_path = tmp.name
+    try:
+        idx = _doc_index or _create_doc_index()
+        hits = idx.search_images_by_file(tmp_path, limit=limit, doc_id=doc_id)
+    finally:
+        Path(tmp_path).unlink(missing_ok=True)
+    return {
+        "query": q or file.filename or "image",
+        "backend": "openclip+qdrant" if hits else "unavailable",
+        "results": [
+            {"id": h.id, "score": h.score, "text": h.text, "metadata": h.metadata}
+            for h in hits
+        ],
+    }
+
+
 @app.get("/api/media/images/{image_id:path}")
 async def get_media_image(image_id: str):
     """Отдать рисунок из кэша (inline в браузере, не скачивание в «Документы»)."""
@@ -484,6 +521,30 @@ async def kb_reindex_document(doc_id: str, index_images: bool = False):
         result = idx.reindex_document(doc_id, index_images=index_images)
     except ValueError as exc:
         raise HTTPException(404, str(exc)) from exc
+    return {"status": "ok", **result}
+
+
+@app.post("/api/kb/reindex-all")
+async def kb_reindex_all(index_images: bool = False):
+    """Переиндексация всех seed + sample PDF (production e5 в Qdrant)."""
+    idx = _doc_index or _create_doc_index()
+    result = idx.reindex_all_documents(index_images=index_images)
+    return {"status": "ok", **result}
+
+
+@app.delete("/api/kb/documents/{doc_id}")
+async def kb_delete_document(doc_id: str, remove_images: bool = True):
+    """Снять загруженный документ с индекса (ingest-only)."""
+    from scinikel.kb.catalog import kb_document_catalog
+
+    idx = _doc_index or _create_doc_index()
+    catalog = {row["doc_id"]: row for row in kb_document_catalog(idx)}
+    ent = catalog.get(doc_id)
+    if not ent:
+        raise HTTPException(404, f"Document {doc_id} not found")
+    if not ent.get("deletable"):
+        raise HTTPException(403, "Only ingested documents can be removed from the index")
+    result = idx.remove_document_from_index(doc_id, remove_images=remove_images)
     return {"status": "ok", **result}
 
 

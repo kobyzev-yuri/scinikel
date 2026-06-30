@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -186,6 +187,68 @@ class DocumentIndex:
             "chunks_indexed": self.doc_chunk_count(doc_id),
             "images_indexed": images_indexed or self.doc_image_count(doc_id),
             "search_backend": self.backend,
+        }
+
+    def sync_doc_vectors(self, doc_id: str) -> int:
+        """Дозаписать e5-векторы в Qdrant для чанков, уже лежащих в памяти."""
+        if not self._vector_ok() or not self.has_doc_chunks(doc_id):
+            return 0
+        qdrant_ids = {r["id"] for r in self._vector_db.scroll_doc_chunks(doc_id)}
+        synced = 0
+        for row in self._chunks:
+            meta = row.get("metadata") or {}
+            if meta.get("doc_id") != doc_id:
+                continue
+            if row["id"] in qdrant_ids:
+                continue
+            if self._upsert_chunk_vector(row):
+                synced += 1
+        if synced:
+            logger.info("Synced %s e5 vectors for %s to Qdrant", synced, doc_id)
+        return synced
+
+    def sync_all_vectors(self) -> dict[str, int]:
+        """Синхронизировать Qdrant со всеми in-memory чанками (этап 2 bootstrap)."""
+        doc_ids = sorted({(c.get("metadata") or {}).get("doc_id") for c in self._chunks} - {None})
+        return {doc_id: self.sync_doc_vectors(doc_id) for doc_id in doc_ids}
+
+    def reindex_all_documents(self, *, index_images: bool = False) -> dict[str, Any]:
+        """Полная переиндексация seed + sample PDF — production e5 в Qdrant."""
+        from scinikel.kb.catalog import list_reindexable_doc_ids
+
+        results: list[dict[str, Any]] = []
+        for doc_id in list_reindexable_doc_ids():
+            try:
+                results.append(self.reindex_document(doc_id, index_images=index_images))
+            except ValueError as exc:
+                results.append({"doc_id": doc_id, "error": str(exc)})
+        return {
+            "documents": results,
+            "chunk_count": self.chunk_count,
+            "search_backend": self.backend,
+        }
+
+    def remove_document_from_index(self, doc_id: str, *, remove_images: bool = False) -> dict[str, Any]:
+        """Снять документ с индекса (BM25 + Qdrant; опционально CLIP)."""
+        chunks_removed = self.doc_chunk_count(doc_id)
+        images_removed = 0
+        self.purge_doc_index(doc_id)
+        if remove_images:
+            try:
+                from scinikel.search.vector_db import get_vector_db
+
+                images_removed = get_vector_db().delete_doc_images(doc_id)
+            except Exception as exc:
+                logger.warning("remove images for %s: %s", doc_id, exc)
+            from scinikel.search.pdf_images import image_cache_dir
+
+            cache = image_cache_dir(doc_id)
+            if cache.exists():
+                shutil.rmtree(cache, ignore_errors=True)
+        return {
+            "doc_id": doc_id,
+            "chunks_removed": chunks_removed,
+            "images_removed": images_removed,
         }
 
     def _rebuild_bm25(self) -> None:
@@ -438,6 +501,42 @@ class DocumentIndex:
             ]
         except Exception as exc:
             logger.warning("Image search failed: %s", exc)
+            return []
+
+    def search_images_by_file(
+        self,
+        image_path: str | Path,
+        limit: int = 5,
+        *,
+        doc_id: str | None = None,
+    ) -> list[SearchHit]:
+        """CLIP-поиск похожих рисунков по загруженному фото (этап 6c)."""
+        try:
+            from scinikel.search.image_embeddings import get_openclip_embeddings
+            from scinikel.search.vector_db import get_vector_db
+
+            clip = get_openclip_embeddings()
+            vdb = get_vector_db()
+            if clip is None or not vdb.image_available:
+                return []
+            emb = clip.encode_image(image_path)
+            filters = {"doc_ids": [doc_id]} if doc_id else None
+            fetch = limit * 3 if doc_id else limit
+            rows = vdb.search_images(emb, limit=fetch, filters=filters)
+            if doc_id:
+                rows = [r for r in rows if (r.get("metadata") or {}).get("doc_id") == doc_id]
+            rows = rows[:limit]
+            return [
+                SearchHit(
+                    id=row["id"],
+                    text=row.get("text", ""),
+                    score=float(row.get("score", 0)),
+                    metadata={k: v for k, v in (row.get("metadata") or {}).items()},
+                )
+                for row in rows
+            ]
+        except Exception as exc:
+            logger.warning("Image-by-file search failed: %s", exc)
             return []
 
     def search(

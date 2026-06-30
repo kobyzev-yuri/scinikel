@@ -1,6 +1,10 @@
 const messagesEl = document.getElementById("messages");
 const form = document.getElementById("chat-form");
 const input = document.getElementById("input");
+const chatImageInput = document.getElementById("chat-image-input");
+const chatAttachImageBtn = document.getElementById("chat-attach-image");
+const chatImagePreviewEl = document.getElementById("chat-image-preview");
+let pendingChatImageFile = null;
 const demoQuestionsEl = document.getElementById("demo-questions");
 const citationsEl = document.getElementById("citations");
 const statsEl = document.getElementById("stats");
@@ -24,6 +28,7 @@ const uploadStatusEl = document.getElementById("upload-status");
 const ingestResultEl = document.getElementById("ingest-result");
 const kbDocumentsEl = document.getElementById("kb-documents");
 const kbSearchSummaryEl = document.getElementById("kb-search-summary");
+const kbReindexAllBtn = document.getElementById("kb-reindex-all");
 const curateStatusEl = document.getElementById("curate-status");
 const visionStatusEl = document.getElementById("vision-status");
 const dialogInfoEl = document.getElementById("dialog-info");
@@ -900,8 +905,14 @@ function renderKbDocuments(data) {
   for (const doc of docs) {
     const tr = document.createElement("tr");
     const indexed = doc.indexed
-      ? '<span class="kb-status ok">в индексе</span>'
+      ? doc.vectors_synced === false
+        ? '<span class="kb-status warn">e5 не синхр.</span>'
+        : '<span class="kb-status ok">в индексе</span>'
       : '<span class="kb-status warn">нет чанков</span>';
+    const qdrantHint =
+      doc.qdrant_chunk_count != null && doc.chunk_count > 0
+        ? ` <span class="kb-qdrant" title="Чанков в Qdrant">Q:${doc.qdrant_chunk_count}</span>`
+        : "";
     const imgCell =
       doc.images_expected > 0
         ? `${doc.image_count || 0}/${doc.images_expected}`
@@ -910,7 +921,7 @@ function renderKbDocuments(data) {
       <td>
         <span class="kb-doc-title">${escapeHtml(doc.title || doc.doc_id)}</span>
         <code class="kb-doc-id">${escapeHtml(doc.doc_id)}</code>
-        ${indexed}
+        ${indexed}${qdrantHint}
       </td>
       <td>${escapeHtml(doc.doc_type_label || doc.doc_type || "—")}</td>
       <td class="num">${doc.chunk_count || 0}</td>
@@ -926,6 +937,15 @@ function renderKbDocuments(data) {
       reBtn.title = "Чанки + e5; для sample PDF опционально CLIP";
       reBtn.addEventListener("click", () => reindexKbDocument(doc.doc_id, doc.has_pdf));
       actions.appendChild(reBtn);
+    }
+    if (doc.deletable) {
+      const delBtn = document.createElement("button");
+      delBtn.type = "button";
+      delBtn.className = "btn-secondary kb-btn kb-btn-danger";
+      delBtn.textContent = "Удалить";
+      delBtn.title = "Снять с индекса BM25 + Qdrant";
+      delBtn.addEventListener("click", () => deleteKbDocument(doc.doc_id));
+      actions.appendChild(delBtn);
     }
     const askBtn = document.createElement("button");
     askBtn.type = "button";
@@ -946,13 +966,20 @@ function renderKbDocuments(data) {
 function renderKbSearchSummary(data) {
   if (!kbSearchSummaryEl) return;
   const backends = (data.backends_active || []).join(" · ") || "—";
+  const docs = data.documents || [];
+  const unsynced = docs.filter((d) => d.indexed && d.vectors_synced === false).length;
+  const syncNote =
+    unsynced > 0
+      ? `<span class="kb-sync-warn">${unsynced} док. без e5 в Qdrant — нажмите «Переиндексировать всё»</span>`
+      : "";
   kbSearchSummaryEl.innerHTML = `
     <div class="kb-search-grid">
       <span><strong>Режим:</strong> ${escapeHtml(data.search_mode || "—")}</span>
       <span><strong>Backend:</strong> ${escapeHtml(data.search_backend || "—")}</span>
       <span><strong>Чанков всего:</strong> ${data.chunk_count ?? 0}</span>
       <span><strong>Слои:</strong> ${escapeHtml(backends)}</span>
-    </div>`;
+    </div>
+    ${syncNote}`;
 }
 
 async function loadKbCatalog() {
@@ -986,6 +1013,45 @@ async function reindexKbDocument(docId, hasPdf) {
     }
     await loadKbCatalog();
     startImageIndexPolling();
+  } catch (err) {
+    if (uploadStatusEl) uploadStatusEl.textContent = `Ошибка: ${err.message}`;
+  }
+}
+
+async function reindexAllKbDocuments() {
+  if (!window.confirm("Переиндексировать все seed + sample PDF (BM25 + e5 в Qdrant)?")) return;
+  const indexImages = window.confirm("Добавить CLIP/Vision для рисунков sample PDF?");
+  if (uploadStatusEl) uploadStatusEl.textContent = "Полная переиндексация корпуса…";
+  if (kbReindexAllBtn) kbReindexAllBtn.disabled = true;
+  try {
+    const qs = new URLSearchParams({ index_images: String(indexImages) });
+    const res = await fetch(`/api/kb/reindex-all?${qs}`, { method: "POST" });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
+    const ok = (data.documents || []).filter((d) => !d.error).length;
+    if (uploadStatusEl) {
+      uploadStatusEl.textContent = `OK: ${ok} док., ${data.chunk_count} чанков, backend ${data.search_backend}`;
+    }
+    await loadKbCatalog();
+    startImageIndexPolling();
+  } catch (err) {
+    if (uploadStatusEl) uploadStatusEl.textContent = `Ошибка: ${err.message}`;
+  } finally {
+    if (kbReindexAllBtn) kbReindexAllBtn.disabled = false;
+  }
+}
+
+async function deleteKbDocument(docId) {
+  if (!window.confirm(`Удалить «${docId}» из индекса (BM25 + Qdrant)?\n\nГраф не изменится.`)) return;
+  if (uploadStatusEl) uploadStatusEl.textContent = `Удаление ${docId}…`;
+  try {
+    const res = await fetch(`/api/kb/documents/${encodeURIComponent(docId)}`, { method: "DELETE" });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
+    if (uploadStatusEl) {
+      uploadStatusEl.textContent = `Удалено: ${docId} (${data.chunks_removed} чанков)`;
+    }
+    await loadKbCatalog();
   } catch (err) {
     if (uploadStatusEl) uploadStatusEl.textContent = `Ошибка: ${err.message}`;
   }
@@ -1841,6 +1907,111 @@ function renderIngestResult(data) {
   ingestResultEl.appendChild(actions);
 }
 
+function citationsFromImageSearch(hits) {
+  return (hits || [])
+    .map((h) => {
+      const meta = h.metadata || {};
+      const imageId = h.id || meta.image_id || meta.chunk_id;
+      if (!imageId) return null;
+      return {
+        type: "image",
+        id: imageId,
+        title: meta.figure_type || meta.title || imageId,
+        snippet: (h.text || meta.content || meta.librarian_annotation || "").trim(),
+        librarian_annotation: meta.librarian_annotation || h.text || "",
+        page: meta.page,
+        doc_id: meta.doc_id,
+        score: h.score,
+        image_url: `/api/media/images/${imageId}`,
+        key_points: meta.key_points || [],
+      };
+    })
+    .filter((c) => c && normalizeMediaUrl(c.image_url));
+}
+
+function setPendingChatImage(file) {
+  pendingChatImageFile = file || null;
+  if (!chatImagePreviewEl) return;
+  chatImagePreviewEl.innerHTML = "";
+  if (!file) {
+    chatImagePreviewEl.hidden = true;
+    return;
+  }
+  chatImagePreviewEl.hidden = false;
+  const wrap = document.createElement("div");
+  wrap.className = "chat-image-preview-inner";
+  const img = document.createElement("img");
+  img.alt = "Прикреплённое фото";
+  img.src = URL.createObjectURL(file);
+  const clearBtn = document.createElement("button");
+  clearBtn.type = "button";
+  clearBtn.className = "btn-secondary chat-image-clear";
+  clearBtn.textContent = "×";
+  clearBtn.title = "Убрать фото";
+  clearBtn.addEventListener("click", () => {
+    URL.revokeObjectURL(img.src);
+    setPendingChatImage(null);
+    if (chatImageInput) chatImageInput.value = "";
+  });
+  wrap.appendChild(img);
+  wrap.appendChild(clearBtn);
+  chatImagePreviewEl.appendChild(wrap);
+}
+
+async function sendImageSearch(file, question = "") {
+  const userLabel = question || "Поиск похожих рисунков по фото";
+  const userDiv = document.createElement("div");
+  userDiv.className = "msg user";
+  const userText = document.createElement("div");
+  userText.className = "msg-body";
+  userText.textContent = userLabel;
+  userDiv.appendChild(userText);
+  const thumb = document.createElement("img");
+  thumb.className = "msg-user-image-thumb";
+  thumb.src = URL.createObjectURL(file);
+  thumb.alt = "Запрос";
+  userDiv.appendChild(thumb);
+  messagesEl.appendChild(userDiv);
+
+  const loading = document.createElement("div");
+  loading.className = "msg assistant loading";
+  loading.textContent = "Ищу похожие рисунки (CLIP)…";
+  messagesEl.appendChild(loading);
+
+  try {
+    const fd = new FormData();
+    fd.append("file", file);
+    if (question) fd.append("q", question);
+    const res = await fetch("/api/search/image?limit=6", { method: "POST", body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
+    loading.remove();
+
+    const citations = citationsFromImageSearch(data.results);
+    const n = citations.length;
+    const answer =
+      n > 0
+        ? `Найдено **${n}** похожих рисунков в базе знаний (CLIP, backend: ${data.backend || "—"}).`
+        : "Похожие рисунки не найдены. Убедитесь, что PDF проиндексирован с CLIP во вкладке «База знаний».";
+
+    chatHistory.push({ role: "user", content: `${userLabel} [фото]` });
+    chatHistory.push({ role: "assistant", content: answer });
+    while (chatHistory.length > MAX_HISTORY_MESSAGES) chatHistory.shift();
+
+    appendMessage("assistant", answer, "поиск по фото · CLIP", citations);
+    if (citations.length) {
+      renderCitations(citations);
+    }
+    setPendingChatImage(null);
+    if (chatImageInput) chatImageInput.value = "";
+  } catch (err) {
+    loading.remove();
+    appendMessage("assistant", `Ошибка поиска по фото: ${err.message}`);
+  } finally {
+    URL.revokeObjectURL(thumb.src);
+  }
+}
+
 async function sendMessage(text) {
   appendMessage("user", text);
   const loading = document.createElement("div");
@@ -2047,9 +2218,20 @@ function showWelcome() {
 form.addEventListener("submit", (e) => {
   e.preventDefault();
   const text = input.value.trim();
+  if (pendingChatImageFile) {
+    input.value = "";
+    sendImageSearch(pendingChatImageFile, text);
+    return;
+  }
   if (!text) return;
   input.value = "";
   sendMessage(text);
+});
+
+chatAttachImageBtn?.addEventListener("click", () => chatImageInput?.click());
+chatImageInput?.addEventListener("change", () => {
+  const file = chatImageInput.files?.[0];
+  setPendingChatImage(file || null);
 });
 
 demoQuestionsEl?.addEventListener("click", (e) => {
@@ -2135,6 +2317,7 @@ document.getElementById("reload-seed")?.addEventListener("click", async () => {
 });
 
 document.getElementById("curate-form")?.addEventListener("submit", submitCurateForm);
+kbReindexAllBtn?.addEventListener("click", reindexAllKbDocuments);
 
 document.getElementById("upload-xlsx").addEventListener("submit", (e) => {
   e.preventDefault();

@@ -73,7 +73,10 @@
           </div>
           <div id="messages" class="messages"></div>
           <form id="chat-form" class="chat-form">
-            <textarea id="input" rows="2" placeholder="Задайте вопрос или уточнение к предыдущему ответу…"></textarea>
+            <input type="file" id="chat-image-input" accept="image/jpeg,image/png,image/webp,image/gif" hidden />
+            <button type="button" id="chat-attach-image" class="btn-secondary chat-attach-btn" title="Поиск по фото (CLIP)">🖼</button>
+            <div id="chat-image-preview" class="chat-image-preview" hidden></div>
+            <textarea id="input" rows="2" placeholder="Задайте вопрос или прикрепите фото для поиска похожих рисунков…"></textarea>
             <button type="submit">Спросить</button>
           </form>
         </section>
@@ -192,6 +195,11 @@
             <h3>Корпус документов и индекс</h3>
             <p class="card-muted">Чанки (BM25 + e5) и рисунки (CLIP) формируются здесь, не в диалоге.</p>
             <div id="kb-search-summary" class="kb-search-summary">Загрузка статуса поиска…</div>
+            <div class="kb-toolbar">
+              <button type="button" id="kb-reindex-all" class="btn-secondary">
+                Переиндексировать всё (e5)
+              </button>
+            </div>
             <div id="kb-documents" class="kb-documents-table-wrap">
               <p class="card-muted">Загрузка каталога…</p>
             </div>
@@ -299,6 +307,6 @@
       <div id="graph-modal-canvas" class="graph-canvas graph-canvas--modal"></div>
     </div>
   </div>
-  <script src="/static/app.js?v=28"></script>
+  <script src="/static/app.js?v=30"></script>
 </body>
 </html>

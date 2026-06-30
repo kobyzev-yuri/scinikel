@@ -25,6 +25,18 @@ def _load_seed_documents() -> list[dict[str, Any]]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def list_reindexable_doc_ids() -> list[str]:
+    """doc_id, которые можно переиндексировать из seed или sample PDF."""
+    ids: list[str] = []
+    for row in _load_seed_documents():
+        if row.get("id"):
+            ids.append(row["id"])
+    for doc_id, pdf_path in SAMPLE_DOC_PDFS.items():
+        if pdf_path.is_file() and doc_id not in ids:
+            ids.append(doc_id)
+    return ids
+
+
 def seed_document_text(doc_id: str) -> tuple[str, dict[str, Any]] | None:
     """Текст и метаданные seed-документа для переиндексации."""
     for row in _load_seed_documents():
@@ -36,6 +48,18 @@ def seed_document_text(doc_id: str) -> tuple[str, dict[str, Any]] | None:
             }
             text = row.get("text") or row.get("abstract") or ""
             return text, meta
+    return None
+
+
+def _qdrant_chunk_count(doc_id: str) -> int | None:
+    try:
+        from scinikel.search.vector_db import get_vector_db
+
+        vdb = get_vector_db()
+        if vdb.available:
+            return vdb.count_doc_chunks(doc_id)
+    except Exception:
+        pass
     return None
 
 
@@ -85,9 +109,16 @@ def kb_document_catalog(doc_index: DocumentIndex) -> list[dict[str, Any]]:
 
     out: list[dict[str, Any]] = []
     for doc_id, ent in entries.items():
-        ent["chunk_count"] = doc_index.doc_chunk_count(doc_id)
+        chunk_count = doc_index.doc_chunk_count(doc_id)
+        qdrant_chunks = _qdrant_chunk_count(doc_id)
+        ent["chunk_count"] = chunk_count
+        ent["qdrant_chunk_count"] = qdrant_chunks
         ent["image_count"] = doc_index.doc_image_count(doc_id)
         ent["indexed"] = doc_index.has_doc_chunks(doc_id)
+        ent["vectors_synced"] = (
+            qdrant_chunks is not None and chunk_count > 0 and qdrant_chunks >= chunk_count
+        )
+        ent["deletable"] = ent["source"] == "ingest"
         out.append(ent)
 
     out.sort(key=lambda x: (0 if x["source"] == "sample" else 1 if x["source"] == "seed" else 2, x["title"]))
