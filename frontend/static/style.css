@@ -38,6 +38,21 @@ header h1 { margin: 0 0 0.25rem; font-size: 1.75rem; }
   background: rgba(61, 154, 139, 0.12);
 }
 
+.badge.index-status.indexing {
+  color: #e8d48a;
+  border-color: rgba(201, 162, 39, 0.55);
+  animation: index-pulse 1.6s ease-in-out infinite;
+}
+
+.badge.index-status.ok {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+@keyframes index-pulse {
+  50% { opacity: 0.65; }
+}
+
 main {
   display: grid;
   grid-template-columns: 1fr minmax(260px, 300px);
